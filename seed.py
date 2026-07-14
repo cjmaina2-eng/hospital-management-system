@@ -1,0 +1,157 @@
+from app import create_app, db
+from app.models import User, Role, Patient, Doctor, Appointment, Service, LabTest, MedicalRecord, Bill, BillItem
+from datetime import datetime, timedelta
+
+def seed_database():
+    app = create_app()
+    with app.app_context():
+        # 1. Create roles
+        roles = [
+            Role(name='admin', description='System Administrator'),
+            Role(name='doctor', description='Medical Doctor'),
+            Role(name='nurse', description='Nurse'),
+            Role(name='receptionist', description='Receptionist'),
+            Role(name='patient', description='Patient'),
+            Role(name='lab_technician', description='Lab Technician')
+        ]
+        for role in roles:
+            if not Role.query.filter_by(name=role.name).first():
+                db.session.add(role)
+        db.session.commit()
+
+        # 2. Create admin
+        if not User.query.filter_by(email='admin@hospital.com').first():
+            admin = User(
+                email='admin@hospital.com',
+                first_name='Admin',
+                last_name='User',
+                is_active=True
+            )
+            admin.set_password('admin123')
+            admin.roles.append(Role.query.filter_by(name='admin').first())
+            db.session.add(admin)
+        db.session.commit()
+
+        # 3. Create doctor
+        if not User.query.filter_by(email='doctor@hospital.com').first():
+            doctor_user = User(
+                email='doctor@hospital.com',
+                first_name='Sarah',
+                last_name='Johnson',
+                is_active=True
+            )
+            doctor_user.set_password('doctor123')
+            doctor_user.roles.append(Role.query.filter_by(name='doctor').first())
+            db.session.add(doctor_user)
+            db.session.flush()  # to get user.id
+
+            doctor = Doctor(
+                user_id=doctor_user.id,
+                specialization='Cardiology',
+                license_number='DOC123456',
+                years_of_experience=10,
+                department='Cardiology',
+                status='free'  # free, in_session, on_leave, lunch_break, in_surgery
+            )
+            db.session.add(doctor)
+        db.session.commit()
+
+        # 4. Create patient
+        if not User.query.filter_by(email='patient@example.com').first():
+            patient_user = User(
+                email='patient@example.com',
+                first_name='John',
+                last_name='Doe',
+                is_active=True
+            )
+            patient_user.set_password('patient123')
+            patient_user.roles.append(Role.query.filter_by(name='patient').first())
+            db.session.add(patient_user)
+            db.session.flush()
+
+            patient = Patient(
+                user_id=patient_user.id,
+                national_id='12345678',
+                date_of_birth=datetime(1990, 1, 1).date(),
+                gender='Male',
+                phone='+1234567890',
+                address='123 Main St',
+                city='Metropolis',
+                state='NY',
+                postal_code='10001',
+                blood_type='A+',
+                allergies='None',
+                status='Active'
+            )
+            db.session.add(patient)
+        db.session.commit()
+
+        # 5. Create lab technician
+        if not User.query.filter_by(email='lab@hospital.com').first():
+            lab_user = User(
+                email='lab@hospital.com',
+                first_name='Lab',
+                last_name='Tech',
+                is_active=True
+            )
+            lab_user.set_password('lab123')
+            lab_user.roles.append(Role.query.filter_by(name='lab_technician').first())
+            db.session.add(lab_user)
+        db.session.commit()
+
+        # 6. Create services
+        services = [
+            Service(name='Consultation', description='Standard consultation fee', default_price=150.00, category='Consultation'),
+            Service(name='Lab: CBC', description='Complete Blood Count', default_price=85.00, category='Lab'),
+            Service(name='Lab: X-Ray', description='X-Ray imaging', default_price=120.00, category='Lab'),
+            Service(name='Lab: COVID-19 Test', description='COVID-19 PCR Test', default_price=95.00, category='Lab'),
+            Service(name='Lab: Urinalysis', description='Urine analysis', default_price=50.00, category='Lab'),
+            Service(name='Lab: Blood Sugar', description='Blood glucose test', default_price=40.00, category='Lab'),
+            Service(name='Procedure: Minor Surgery', description='Minor surgical procedure', default_price=450.00, category='Procedure'),
+            Service(name='Room: Standard', description='Standard ward room per day', default_price=200.00, category='Room'),
+            Service(name='Room: Private', description='Private room per day', default_price=350.00, category='Room'),
+            Service(name='Room: ICU', description='ICU room per day', default_price=800.00, category='Room'),
+        ]
+        for service in services:
+            if not Service.query.filter_by(name=service.name).first():
+                db.session.add(service)
+        db.session.commit()
+
+        # 7. Create sample appointment (if patient and doctor exist)
+        patient = Patient.query.first()
+        doctor = Doctor.query.first()
+        if patient and doctor:
+            if not Appointment.query.filter_by(patient_id=patient.id, doctor_id=doctor.id).first():
+                appt = Appointment(
+                    patient_id=patient.id,
+                    doctor_id=doctor.id,
+                    appointment_date=datetime.now() + timedelta(days=2, hours=10),
+                    reason='Routine checkup',
+                    status='Scheduled'
+                )
+                db.session.add(appt)
+                db.session.commit()
+
+        # 8. Create sample medical record
+        if patient and doctor:
+            if not MedicalRecord.query.filter_by(patient_id=patient.id).first():
+                record = MedicalRecord(
+                    patient_id=patient.id,
+                    doctor_id=doctor.id,
+                    diagnosis='Hypertension',
+                    symptoms='Headache, dizziness',
+                    prescription='Lisinopril 10mg daily',
+                    status='Active'
+                )
+                db.session.add(record)
+                db.session.commit()
+
+        print("✅ Database seeded successfully!")
+        print("Admin: admin@hospital.com / admin123")
+        print("Doctor: doctor@hospital.com / doctor123")
+        print("Patient: patient@example.com / patient123")
+        print("Lab Technician: lab@hospital.com / lab123")
+        print("Services added: Consultation, Lab tests, etc.")
+
+if __name__ == '__main__':
+    seed_database()

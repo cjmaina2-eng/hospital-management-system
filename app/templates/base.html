@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hospital Management System{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #64748b;
+            --success-color: #22c55e;
+            --warning-color: #eab308;
+            --danger-color: #ef4444;
+            --bg-light: #f1f5f9;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            padding-top: 65px;
+            min-height: 100vh;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            padding: 0.75rem 0;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.3rem;
+            letter-spacing: -0.5px;
+            color: #fff !important;
+        }
+        .navbar-brand i {
+            color: #60a5fa;
+            margin-right: 8px;
+        }
+        .navbar-dark .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .navbar-dark .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff !important;
+        }
+        .navbar-dark .nav-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff !important;
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .card:hover {
+            box-shadow: var(--card-hover-shadow);
+            transform: translateY(-2px);
+        }
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 1.25rem;
+            font-weight: 600;
+        }
+
+        /* Tables */
+        .table {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .table thead th {
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #475569;
+            padding: 0.75rem 1rem;
+        }
+        .table tbody tr {
+            transition: background-color 0.2s;
+        }
+        .table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        .table tbody td {
+            padding: 0.75rem 1rem;
+            vertical-align: middle;
+        }
+
+        /* Buttons */
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 0.5rem 1.25rem;
+            transition: all 0.2s;
+        }
+        .btn i {
+            margin-right: 6px;
+        }
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+        }
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        /* Flash Messages */
+        .flash-container {
+            position: fixed;
+            top: 75px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 400px;
+            width: 100%;
+        }
+        .flash-container .alert {
+            border-radius: 12px;
+            border: none;
+            box-shadow: var(--card-hover-shadow);
+            padding: 1rem 1.25rem;
+            animation: slideInRight 0.4s ease;
+        }
+        .flash-container .alert-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .flash-container .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .flash-container .alert-warning {
+            background: #fef9c3;
+            color: #854d0e;
+        }
+        .flash-container .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Badges */
+        .badge {
+            font-weight: 500;
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            border-radius: 12px;
+            padding: 1.5rem;
+            color: white;
+        }
+        .stat-card i {
+            font-size: 2.5rem;
+            opacity: 0.3;
+        }
+        .stat-card .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .stat-card .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 3rem;
+            padding: 1.5rem 0;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding-top: 60px; }
+            .flash-container {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+            .stat-card .stat-number {
+                font-size: 1.5rem;
+            }
+        }
+        .min-vh-75 {
+            min-height: 75vh;
+        }
+        /* Appointment availability styles */
+        #availabilityResult .alert {
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 0.5rem;
+        }
+        #availabilityResult .alert-success {
+            background: #dcfce7;
+            border: 1px solid #86efac;
+            color: #166534;
+        }
+        #availabilityResult .alert-danger {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+        }
+        #availabilityResult .alert-warning {
+            background: #fef9c3;
+            border: 1px solid #fde047;
+            color: #854d0e;
+        }
+        #availabilityResult .alert-info {
+            background: #dbeafe;
+            border: 1px solid #93c5fd;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('dashboard.index') if current_user.is_authenticated else url_for('auth.login') }}">
+                <i class="fas fa-hospital"></i> HMS
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+                    {% if current_user.is_authenticated %}
+                        <!-- Dashboard -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('dashboard.index') }}">
+                                <i class="fas fa-home"></i> Dashboard
+                            </a>
+                        </li>
+                        <!-- Patients -->
+                        {% if current_user.has_role('admin') or current_user.has_role('doctor') or current_user.has_role('receptionist') %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('patient.index') }}">
+                                <i class="fas fa-users"></i> Patients
+                            </a>
+                        </li>
+                        {% endif %}
+                        <!-- Appointments -->
+                        {% if current_user.has_role('patient') or current_user.has_role('doctor') or current_user.has_role('admin') or current_user.has_role('receptionist') %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('appointment.index') }}">
+                                <i class="fas fa-calendar-check"></i> Appointments
+                            </a>
+                        </li>
+                        {% endif %}
+                        <!-- Billing -->
+                        {% if current_user.has_role('admin') or current_user.has_role('receptionist') or current_user.has_role('doctor') or current_user.has_role('patient') %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('billing.index') }}">
+                                <i class="fas fa-file-invoice-dollar"></i> Billing
+                            </a>
+                        </li>
+                        {% endif %}
+                        <!-- Reports -->
+                        {% if current_user.has_role('admin') or current_user.has_role('receptionist') or current_user.has_role('doctor') %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('report.dashboard') }}">
+                                <i class="fas fa-chart-pie"></i> Reports
+                            </a>
+                        </li>
+                        {% endif %}
+                        <!-- Lab -->
+                        {% if current_user.has_role('doctor') or current_user.has_role('lab_technician') or current_user.has_role('admin') %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('lab.index') }}">
+                                <i class="fas fa-flask"></i> Lab
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if current_user.has_role('doctor') %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('doctor.status') }}">
+                                <i class="fas fa-user-md"></i> My Status
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if current_user.has_role('receptionist') or current_user.has_role('admin') %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('billing.pending') }}">
+                                <i class="fas fa-clock text-warning"></i> Pending Bills
+                                <!-- Optional: badge with count -->
+                            </a>
+                        </li>
+                        {% endif %}
+                        <!-- User -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle"></i> {{ current_user.first_name }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><span class="dropdown-item disabled">
+                                    <i class="fas fa-tag"></i> {{ current_user.roles|map(attribute='name')|join(', ')|capitalize }}
+                                </span></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                    <i class="fas fa-sign-out-alt text-danger"></i> Logout
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.login') }}">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% elif category == 'warning' %}warning{% else %}info-circle{% endif %}"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <div class="container py-3">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <!-- <div class="footer text-center">
+        <div class="container">
+            <p class="mb-0">
+                <i class="fas fa-copyright"></i> 2026 Hospital Management System &mdash; 
+                <span class="text-muted">Built with <i class="fas fa-heart text-danger"></i> for ZETECH University</span>
+            </p>
+        </div>
+    </div>
+-->
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Auto-close flash messages -->
+    <script>
+        setTimeout(function() {
+            document.querySelectorAll('.alert').forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

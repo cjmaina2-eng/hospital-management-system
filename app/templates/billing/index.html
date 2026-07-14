@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Bills{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Bills</h1>
+    {% if current_user.has_role('admin') or current_user.has_role('receptionist') %}
+    <a href="{{ url_for('billing.new') }}" class="btn btn-primary">Create Bill</a>
+    {% endif %}
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Patient</th>
+            <th>Date</th>
+            <th>Total</th>
+            <th>Paid</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for bill in bills %}
+        <tr>
+            <td>{{ bill.id }}</td>
+            <td>{{ bill.patient.user.first_name }} {{ bill.patient.user.last_name }}</td>
+            <td>{{ bill.bill_date.strftime('%Y-%m-%d') }}</td>
+            <td>${{ "%.2f"|format(bill.total_amount) }}</td>
+            <td>${{ "%.2f"|format(bill.paid_amount) }}</td>
+            <td>
+                <span class="badge {% if bill.status == 'Paid' %}bg-success{% elif bill.status == 'Partial' %}bg-warning{% else %}bg-danger{% endif %}">
+                    {{ bill.status }}
+                </span>
+            </td>
+            <td>
+                <a href="{{ url_for('billing.view', bill_id=bill.id) }}" class="btn btn-sm btn-info">View</a>
+                {% if current_user.has_role('admin') and bill.status != 'Paid' %}
+                <form action="{{ url_for('billing.delete', bill_id=bill.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this bill?');">Delete</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center">No bills found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

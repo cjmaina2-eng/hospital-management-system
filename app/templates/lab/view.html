@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Lab Test #{{ test.id }}{% endblock %}
+
+{% block content %}
+<h1>Lab Test #{{ test.id }}</h1>
+
+<div class="card mb-3">
+    <div class="card-header">
+        <strong>{{ test.test_name }}</strong>
+        <span class="badge {% if test.status == 'Ordered' %}bg-warning{% elif test.status == 'In-Progress' %}bg-info{% elif test.status == 'Completed' %}bg-success{% else %}bg-danger{% endif %} float-end">
+            {{ test.status }}
+        </span>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Patient:</strong> {{ test.patient.user.first_name }} {{ test.patient.user.last_name }}</p>
+                <p><strong>Doctor:</strong> Dr. {{ test.doctor.user.first_name }} {{ test.doctor.user.last_name }}</p>
+                <p><strong>Ordered Date:</strong> {{ test.ordered_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                <p><strong>Description:</strong> {{ test.test_description or 'N/A' }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Status:</strong> {{ test.status }}</p>
+                {% if test.result_date %}
+                <p><strong>Result Date:</strong> {{ test.result_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                {% endif %}
+                <p><strong>Result:</strong></p>
+                <div class="p-3 bg-light rounded">
+                    {{ test.result or '<span class="text-muted">Not available yet</span>'|safe }}
+                </div>
+                <p><strong>Technician Notes:</strong> {{ test.notes or 'N/A' }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        {% if current_user.has_role('lab_technician') and test.status in ['Ordered', 'In-Progress'] %}
+        <a href="{{ url_for('lab.enter_result', test_id=test.id) }}" class="btn btn-success">
+            <i class="fas fa-edit"></i> Enter Result
+        </a>
+        {% endif %}
+        <a href="{{ url_for('lab.index') }}" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+{% endblock %}

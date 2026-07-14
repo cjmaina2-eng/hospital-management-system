@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Appointments{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>My Appointments</h1>
+    {% if current_user.has_role('patient') or current_user.has_role('admin') or current_user.has_role('receptionist') %}
+    <a href="{{ url_for('appointment.new') }}" class="btn btn-primary">Book Appointment</a>
+    {% endif %}
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Patient</th>
+            <th>Doctor</th>
+            <th>Date/Time</th>
+            {% if not (current_user.has_role('admin') or current_user.has_role('receptionist')) %}
+            <th>Reason</th>  <!-- hidden for admin/reception -->
+            {% endif %}
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for appt in appointments %}
+        <tr>
+            <td>{{ appt.id }}</td>
+            <td>{{ appt.patient.user.first_name }} {{ appt.patient.user.last_name }}</td>
+            <td>Dr. {{ appt.doctor.user.first_name }} {{ appt.doctor.user.last_name }}</td>
+            <td>{{ appt.appointment_date.strftime('%Y-%m-%d %H:%M') }}</td>
+            {% if not (current_user.has_role('admin') or current_user.has_role('receptionist')) %}
+            <td>{{ appt.reason }}</td>
+            {% endif %}
+            <td>...</td>
+            <td>...</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

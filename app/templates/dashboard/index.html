@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+        <div>
+            <h1 class="display-6 fw-bold">
+                <i class="fas fa-tachometer-alt text-primary"></i> Welcome, {{ user.first_name }}!
+                <small class="text-muted fs-6">{{ today.strftime('%B %d, %Y') }}</small>
+            </h1>
+            <p class="text-muted mb-0">
+                Role: <strong>{{ roles|join(', ')|capitalize }}</strong>
+            </p>
+            {% if is_doctor and doctor_info %}
+            <p class="text-muted mb-0">Specialization: <strong>{{ doctor_info.specialization }}</strong></p>
+            {% endif %}
+        </div>
+        <div class="text-end">
+            <span class="badge bg-secondary fs-6">
+                {{ today.strftime('%B %d, %Y') }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-4 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number">{{ total_patients|default(0) }}</div>
+                    <div class="stat-label">Total Patients</div>
+                </div>
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number">{{ total_appointments|default(0) }}</div>
+                    <div class="stat-label">Total Appointments</div>
+                </div>
+                <i class="fas fa-calendar-check"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #eab308, #ca8a04);">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number">${{ total_revenue|default(0)|round(2) }}</div>
+                    <div class="stat-label">Revenue</div>
+                </div>
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #64748b, #334155);">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number">{{ total_doctors|default(0) }}</div>
+                    <div class="stat-label">Total Doctors</div>
+                </div>
+                <i class="fas fa-user-md"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6, #6366f1);">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number">{{ today_appointments|default(0) }}</div>
+                    <div class="stat-label">Appointments Today</div>
+                </div>
+                <i class="fas fa-sun"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number">{{ unpaid_bills|default(0) }}</div>
+                    <div class="stat-label">Open Bills</div>
+                </div>
+                <i class="fas fa-file-invoice"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if is_admin %}
+<div class="row g-3 mb-4">
+    <div class="col-lg-3 col-md-6">
+        <a href="{{ url_for('patient.new') }}" class="card action-card p-4 text-decoration-none text-white bg-primary h-100">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="mb-1">Register Patient</h5>
+                    <p class="mb-0 text-white-75">Create a new patient profile.</p>
+                </div>
+                <i class="fas fa-user-plus fa-2x"></i>
+            </div>
+        </a>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <a href="{{ url_for('appointment.new') }}" class="card action-card p-4 text-decoration-none text-white bg-success h-100">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="mb-1">Book Appointment</h5>
+                    <p class="mb-0 text-white-75">Schedule a new visit quickly.</p>
+                </div>
+                <i class="fas fa-calendar-plus fa-2x"></i>
+            </div>
+        </a>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <a href="{{ url_for('auth.register') }}" class="card action-card p-4 text-decoration-none text-white bg-warning h-100">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="mb-1">Add Staff</h5>
+                    <p class="mb-0 text-white-75">Invite doctors or receptionists.</p>
+                </div>
+                <i class="fas fa-user-cog fa-2x"></i>
+            </div>
+        </a>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <a href="{{ url_for('report.dashboard') }}" class="card action-card p-4 text-decoration-none text-white bg-info h-100">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="mb-1">View Reports</h5>
+                    <p class="mb-0 text-white-75">See analytics and trends.</p>
+                </div>
+                <i class="fas fa-chart-line fa-2x"></i>
+            </div>
+        </a>
+    </div>
+</div>
+{% endif %}
+
+{% if is_doctor %}
+<div class="row g-3 mb-4">
+    <div class="col-lg-4 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #38bdf8, #0ea5e9);">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number">{{ doctor_patients_count|default(0) }}</div>
+                    <div class="stat-label">My Patients</div>
+                </div>
+                <i class="fas fa-user-injured"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #f97316, #ea580c);">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number">{{ my_upcoming_appointments|length }}</div>
+                    <div class="stat-label">Upcoming Visits</div>
+                </div>
+                <i class="fas fa-stethoscope"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #a855f7, #9333ea);">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number">{{ my_recent_records|length }}</div>
+                    <div class="stat-label">Recent Records</div>
+                </div>
+                <i class="fas fa-notes-medical"></i>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-calendar-days text-primary"></i> Upcoming Appointments
+                </div>
+                <span class="badge bg-primary">{{ upcoming_appointments|length }} upcoming</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for appt in upcoming_appointments %}
+                    <div class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+                        <div>
+                            <h6 class="mb-1">{{ appt.patient.user.first_name }} {{ appt.patient.user.last_name }}</h6>
+                            <p class="mb-1 text-muted">Dr. {{ appt.doctor.user.first_name }} {{ appt.doctor.user.last_name }} &middot; {{ appt.reason or 'General consultation' }}</p>
+                            <span class="badge bg-success">{{ appt.appointment_date.strftime('%b %d, %Y %H:%M') }}</span>
+                        </div>
+                        <div class="text-end text-muted">
+                            <small>Status: {{ appt.status }}</small>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-5">
+                        No upcoming appointments.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="fas fa-chart-pie text-info"></i> Dashboard Analytics
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h6 class="mb-2">Appointment Status</h6>
+                    <canvas id="statusChart" height="220"></canvas>
+                </div>
+                <div>
+                    <h6 class="mb-2">Revenue Breakdown</h6>
+                    <canvas id="revenueChart" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const statusCtx = document.getElementById('statusChart');
+    if (statusCtx) {
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ appointment_status_labels|tojson }},
+                datasets: [{
+                    data: {{ appointment_status_values|tojson }},
+                    backgroundColor: ['#2563eb', '#22c55e', '#ef4444', '#f59e0b', '#64748b'],
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+
+    const revenueCtx = document.getElementById('revenueChart');
+    if (revenueCtx) {
+        new Chart(revenueCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ revenue_labels|tojson }},
+                datasets: [{
+                    label: 'Revenue',
+                    data: {{ revenue_values|tojson }},
+                    backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    }
+</script>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="fas fa-file-medical text-info"></i> Recent Medical Records
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for record in recent_records %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+                            <div>
+                                <h6 class="mb-1">{{ record.patient.user.first_name }} {{ record.patient.user.last_name }}</h6>
+                                <p class="mb-1 text-muted small">{{ record.diagnosis or 'Diagnosis not recorded' }}</p>
+                            </div>
+                            <span class="badge bg-secondary">{{ record.date.strftime('%b %d') }}</span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-5">
+                        No recent records.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="fas fa-user-md text-info"></i> Doctor Performance
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Doctor</th>
+                                <th>Upcoming Visits</th>
+                                <th>Patients</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if doctor_info %}
+                            <tr>
+                                <td>{{ doctor_info.user.first_name }} {{ doctor_info.user.last_name }}</td>
+                                <td>{{ my_upcoming_appointments|length }}</td>
+                                <td>{{ doctor_patients_count }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">Performance data for your account will appear here.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

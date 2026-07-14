@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Bill #{{ bill.id }}{% endblock %}
+
+{% block content %}
+<h1>Edit Bill #{{ bill.id }}</h1>
+<form method="POST">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="due_date" class="form-label">Due Date</label>
+                <input type="date" class="form-control" id="due_date" name="due_date" value="{{ bill.due_date.strftime('%Y-%m-%d') if bill.due_date else '' }}">
+            </div>
+            <div class="mb-3">
+                <label for="payment_method" class="form-label">Payment Method</label>
+                <select class="form-select" id="payment_method" name="payment_method">
+                    <option value="Cash" {% if bill.payment_method == 'Cash' %}selected{% endif %}>Cash</option>
+                    <option value="Credit Card" {% if bill.payment_method == 'Credit Card' %}selected{% endif %}>Credit Card</option>
+                    <option value="Insurance" {% if bill.payment_method == 'Insurance' %}selected{% endif %}>Insurance</option>
+                    <option value="Mobile Money" {% if bill.payment_method == 'Mobile Money' %}selected{% endif %}>Mobile Money</option>
+                    <option value="Other" {% if bill.payment_method == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notes</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3">{{ bill.notes or '' }}</textarea>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <p><strong>Patient:</strong> {{ bill.patient.user.first_name }} {{ bill.patient.user.last_name }}</p>
+            <p><strong>Date Created:</strong> {{ bill.bill_date.strftime('%Y-%m-%d %H:%M') }}</p>
+            <p><strong>Total:</strong> ${{ "%.2f"|format(bill.total_amount) }}</p>
+            <p><strong>Status:</strong> {{ bill.status }}</p>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Update</button>
+    <a href="{{ url_for('billing.view', bill_id=bill.id) }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

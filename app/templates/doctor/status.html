@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Update Doctor Status{% endblock %}
+
+{% block content %}
+<h1><i class="fas fa-user-md text-primary"></i> Update Status</h1>
+
+<div class="card">
+    <div class="card-header">
+        <h5>Dr. {{ doctor.user.first_name }} {{ doctor.user.last_name }}</h5>
+        <p class="text-muted mb-0">{{ doctor.specialization }} - {{ doctor.department }}</p>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label for="status" class="form-label fw-semibold">Current Status</label>
+                <select class="form-select form-select-lg" id="status" name="status">
+                    <option value="free" {% if doctor.status == 'free' %}selected{% endif %}>🟢 Free - Available for appointments</option>
+                    <option value="in_session" {% if doctor.status == 'in_session' %}selected{% endif %}>🔵 In Session - Consulting with patient</option>
+                    <option value="lunch_break" {% if doctor.status == 'lunch_break' %}selected{% endif %}>🟡 Lunch Break - Not available</option>
+                    <option value="in_surgery" {% if doctor.status == 'in_surgery' %}selected{% endif %}>🔮 In Surgery - Not available</option>
+                    <option value="on_leave" {% if doctor.status == 'on_leave' %}selected{% endif %}>🔴 On Leave - Not available</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-save"></i> Update Status
+            </button>
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+
+<div class="mt-4">
+    <h5>Status Legend</h5>
+    <ul class="list-unstyled">
+        <li><span class="badge bg-success">Free</span> - Available for bookings</li>
+        <li><span class="badge bg-primary">In Session</span> - Currently with a patient (no new bookings)</li>
+        <li><span class="badge bg-warning">Lunch Break</span> - Not available</li>
+        <li><span class="badge bg-info">In Surgery</span> - Not available</li>
+        <li><span class="badge bg-danger">On Leave</span> - Not available</li>
+    </ul>
+</div>
+{% endblock %}

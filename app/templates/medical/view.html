@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Medical Record #{{ record.id }}{% endblock %}
+
+{% block content %}
+<h1>Medical Record #{{ record.id }}</h1>
+<div class="card">
+    <div class="card-header">
+        <strong>Patient:</strong> {{ record.patient.user.first_name }} {{ record.patient.user.last_name }}
+        | <strong>Doctor:</strong> Dr. {{ record.doctor.user.first_name }} {{ record.doctor.user.last_name }}
+        | <strong>Date:</strong> {{ record.date.strftime('%Y-%m-%d %H:%M') }}
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Diagnosis:</strong> {{ record.diagnosis or '—' }}</p>
+                <p><strong>Symptoms:</strong> {{ record.symptoms or '—' }}</p>
+                <p><strong>Clinical Notes:</strong> {{ record.clinical_notes or '—' }}</p>
+                <p><strong>Prescription:</strong> {{ record.prescription or '—' }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Lab Requests:</strong> {{ record.lab_requests or '—' }}</p>
+                <p><strong>Lab Results:</strong> {{ record.lab_results or '—' }}</p>
+                <p><strong>Follow-up Notes:</strong> {{ record.follow_up_notes or '—' }}</p>
+                <p><strong>Status:</strong> <span class="badge {% if record.status == 'Active' %}bg-warning{% else %}bg-secondary{% endif %}">{{ record.status }}</span></p>
+                {% if record.appointment %}
+                <p><strong>Associated Appointment:</strong> {{ record.appointment.appointment_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        {% if current_user.has_role('doctor') or current_user.has_role('admin') %}
+            {% if current_user.has_role('doctor') and record.doctor.user_id == current_user.id or current_user.has_role('admin') %}
+            <a href="{{ url_for('medical.edit', record_id=record.id) }}" class="btn btn-warning">Edit</a>
+            <form action="{{ url_for('medical.delete', record_id=record.id) }}" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this record?');">Delete</button>
+            </form>
+            {% endif %}
+        {% endif %}
+        <a href="{{ url_for('medical.index', patient_id=record.patient.id) }}" class="btn btn-secondary">Back to Records</a>
+        <a href="{{ url_for('patient.view', id=record.patient.id) }}" class="btn btn-secondary">Back to Patient</a>
+    </div>
+</div>
+{% endblock %}

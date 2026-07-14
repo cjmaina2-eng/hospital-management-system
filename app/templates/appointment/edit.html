@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Appointment{% endblock %}
+
+{% block content %}
+<h1>Edit Appointment</h1>
+<form method="POST">
+    <div class="mb-3">
+        <label for="doctor_id" class="form-label">Doctor</label>
+        <select class="form-select" id="doctor_id" name="doctor_id" required>
+            {% for doctor in doctors %}
+            <option value="{{ doctor.id }}" {% if doctor.id == appointment.doctor_id %}selected{% endif %}>
+                Dr. {{ doctor.user.first_name }} {{ doctor.user.last_name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="appointment_date" class="form-label">Date</label>
+            <input type="date" class="form-control" id="appointment_date" name="appointment_date" value="{{ appointment.appointment_date.strftime('%Y-%m-%d') }}" required>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="appointment_time" class="form-label">Time</label>
+            <input type="time" class="form-control" id="appointment_time" name="appointment_time" value="{{ appointment.appointment_date.strftime('%H:%M') }}" required>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="reason" class="form-label">Reason</label>
+        <textarea class="form-control" id="reason" name="reason" rows="3" required>{{ appointment.reason }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label for="status" class="form-label">Status</label>
+        <select class="form-select" id="status" name="status">
+            <option value="Scheduled" {% if appointment.status == 'Scheduled' %}selected{% endif %}>Scheduled</option>
+            <option value="Completed" {% if appointment.status == 'Completed' %}selected{% endif %}>Completed</option>
+            <option value="Cancelled" {% if appointment.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+            <option value="No-Show" {% if appointment.status == 'No-Show' %}selected{% endif %}>No-Show</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Update</button>
+    <a href="{{ url_for('appointment.view', id=appointment.id) }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

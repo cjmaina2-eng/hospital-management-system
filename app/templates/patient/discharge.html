@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Discharge Patient{% endblock %}
+
+{% block content %}
+<h1><i class="fas fa-door-open text-primary"></i> Discharge Patient</h1>
+
+<div class="card">
+    <div class="card-header">
+        <h5>{{ patient.user.first_name }} {{ patient.user.last_name }}</h5>
+        <p class="text-muted mb-0">
+            <strong>ID:</strong> #{{ patient.id }} &nbsp;|&nbsp;
+            <strong>Admitted:</strong> {{ patient.admission_date.strftime('%Y-%m-%d %H:%M') if patient.admission_date else 'N/A' }}
+        </p>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <i class="fas fa-info-circle"></i> 
+            <strong>Note:</strong> Discharging this patient will:
+            <ul class="mb-0 mt-2">
+                <li>Generate a bill for all services rendered</li>
+                <li>Mark the patient as "Discharged"</li>
+                <li>Send the bill to reception for payment processing</li>
+            </ul>
+        </div>
+
+        <form method="POST">
+            <div class="mb-3">
+                <label for="notes" class="form-label">Discharge Notes</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3" 
+                          placeholder="Optional notes about discharge"></textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success" onclick="return confirm('Confirm discharge and generate bill?');">
+                    <i class="fas fa-check"></i> Confirm Discharge & Generate Bill
+                </button>
+                <a href="{{ url_for('patient.view', id=patient.id) }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

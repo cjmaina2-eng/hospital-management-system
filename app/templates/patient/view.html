@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Details{% endblock %}
+
+{% block content %}
+<h1>Patient Details</h1>
+
+<div class="card">
+    <div class="card-header">
+        <h5>{{ patient.user.first_name }} {{ patient.user.last_name }}</h5>
+        {% if current_user.has_role('doctor') %}
+        <span class="badge bg-info">Clinical View Only</span>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <!-- Always visible: name, DOB, gender, blood type, allergies -->
+            <div class="col-md-6">
+                <p><strong>Name:</strong> {{ patient.user.first_name }} {{ patient.user.last_name }}</p>
+                <p><strong>Date of Birth:</strong> {{ patient.date_of_birth.strftime('%Y-%m-%d') }}</p>
+                <p><strong>Gender:</strong> {{ patient.gender }}</p>
+                <p><strong>Blood Type:</strong> {{ patient.blood_type or 'Not on file' }}</p>
+                <p><strong>Allergies:</strong> {{ patient.allergies or 'None recorded' }}</p>
+            </div>
+            <div class="col-md-6">
+                <!-- Clinical history (placeholder – we'll add medical records later) -->
+                <p><strong>Medical History:</strong> <span class="text-muted">(To be added)</span></p>
+                <p><strong>Current Medications:</strong> <span class="text-muted">(To be added)</span></p>
+                <p><strong>Past Procedures:</strong> <span class="text-muted">(To be added)</span></p>
+            </div>
+        </div>
+
+        <!-- Only non‑doctors see contact/emergency details -->
+        {% if not current_user.has_role('doctor') %}
+        <hr>
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Email:</strong> {{ patient.user.email }}</p>
+                <p><strong>Phone:</strong> {{ patient.phone }}</p>
+                <p><strong>Address:</strong> {{ patient.address }}</p>
+                <p><strong>City:</strong> {{ patient.city }}</p>
+                <p><strong>State:</strong> {{ patient.state }}</p>
+                <p><strong>Postal Code:</strong> {{ patient.postal_code }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>National ID:</strong> {{ patient.national_id }}</p>
+                <p><strong>Emergency Contact:</strong> {{ patient.emergency_contact_name }}</p>
+                <p><strong>Emergency Phone:</strong> {{ patient.emergency_contact_phone }}</p>
+                <p><strong>Relationship:</strong> {{ patient.emergency_contact_relationship }}</p>
+                <p><strong>Registered:</strong> {{ patient.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    <div class="card-footer">
+        {% if current_user.has_role('admin') or current_user.has_role('receptionist') %}
+        <a href="{{ url_for('patient.edit', id=patient.id) }}" class="btn btn-warning">Edit</a>
+        {% endif %}
+        <a href="{{ url_for('patient.index') }}" class="btn btn-secondary">Back to List</a>
+        <a href="{{ url_for('medical.index', patient_id=patient.id) }}" class="btn btn-info">Medical History</a>
+        {% if current_user.has_role('doctor') %}
+        <a href="{{ url_for('lab.order', patient_id=patient.id) }}" class="btn btn-primary">
+            <i class="fas fa-flask"></i> Order Lab Test
+        </a>
+        {% endif %}
+        {% if current_user.has_role('doctor') or current_user.has_role('admin') %}
+            {% if patient.status != 'Discharged' %}
+            <a href="{{ url_for('patient.discharge', id=patient.id) }}" class="btn btn-success">
+                <i class="fas fa-door-open"></i> Discharge
+            </a>
+            {% else %}
+            <span class="badge bg-success">Discharged</span>
+            {% endif %}
+        {% endif %}
+            </div>
+</div>
+{% endblock %}

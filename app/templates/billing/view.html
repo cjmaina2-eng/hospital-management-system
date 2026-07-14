@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Bill #{{ bill.id }}{% endblock %}
+
+{% block content %}
+<h1>Bill #{{ bill.id }}</h1>
+<div class="card">
+    <div class="card-header">
+        <strong>Patient:</strong> {{ bill.patient.user.first_name }} {{ bill.patient.user.last_name }}
+        | <strong>Date:</strong> {{ bill.bill_date.strftime('%Y-%m-%d %H:%M') }}
+        | <strong>Status:</strong> 
+        <span class="badge {% if bill.status == 'Paid' %}bg-success{% elif bill.status == 'Partial' %}bg-warning{% else %}bg-danger{% endif %}">
+            {{ bill.status }}
+        </span>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Due Date:</strong> {{ bill.due_date.strftime('%Y-%m-%d') if bill.due_date else 'N/A' }}</p>
+                <p><strong>Payment Method:</strong> {{ bill.payment_method or 'Not specified' }}</p>
+                <p><strong>Notes:</strong> {{ bill.notes or '—' }}</p>
+                {% if bill.appointment %}
+                <p><strong>Appointment:</strong> {{ bill.appointment.appointment_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <p><strong>Total Amount:</strong> ${{ "%.2f"|format(bill.total_amount) }}</p>
+                <p><strong>Paid Amount:</strong> ${{ "%.2f"|format(bill.paid_amount) }}</p>
+                <p><strong>Balance Due:</strong> ${{ "%.2f"|format(bill.total_amount - bill.paid_amount) }}</p>
+            </div>
+        </div>
+        <hr>
+        <h5>Line Items</h5>
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Qty</th>
+                    <th>Unit Price</th>
+                    <th>Total</th>
+                    {% if current_user.has_role('admin') or current_user.has_role('receptionist') %}
+                    <th>Action</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in bill.items %}
+                <tr>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>${{ "%.2f"|format(item.unit_price) }}</td>
+                    <td>${{ "%.2f"|format(item.total) }}</td>
+                    {% if (current_user.has_role('admin') or current_user.has_role('receptionist')) and bill.status != 'Paid' %}
+                    <td>
+                        <form action="{{ url_for('billing.remove_item', item_id=item.id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Remove this item?');">Remove</button>
+                        </form>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if (current_user.has_role('admin') or current_user.has_role('receptionist')) and bill.status != 'Paid' %}
+        <div class="mt-3">
+            <h6>Add Item</h6>
+            <form action="{{ url_for('billing.add_item', bill_id=bill.id) }}" method="POST" class="row g-2">
+                <div class="col-5"><input type="text" class="form-control" name="description" placeholder="Description" required></div>
+                <div class="col-2"><input type="number" class="form-control" name="quantity" placeholder="Qty" value="1" min="1"></div>
+                <div class="col-3"><input type="number" class="form-control" name="unit_price" placeholder="Price" step="0.01" required></div>
+                <div class="col-2"><button type="submit" class="btn btn-primary">Add</button></div>
+            </form>
+        </div>
+        <hr>
+        <div class="mt-3">
+            <h6>Record Payment</h6>
+            <form action="{{ url_for('billing.record_payment', bill_id=bill.id) }}" method="POST" class="row g-2">
+                <div class="col-4"><input type="number" class="form-control" name="amount" placeholder="Amount" step="0.01" required></div>
+                <div class="col-2"><button type="submit" class="btn btn-success">Pay</button></div>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+    <div class="card-footer">
+        {% if current_user.has_role('admin') or current_user.has_role('receptionist') %}
+        <a href="{{ url_for('billing.edit', bill_id=bill.id) }}" class="btn btn-warning">Edit</a>
+        {% endif %}
+        <a href="{{ url_for('billing.index') }}" class="btn btn-secondary">Back to Bills</a>
+    </div>
+</div>
+{% endblock %}

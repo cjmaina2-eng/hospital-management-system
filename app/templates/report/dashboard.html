@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Reports Dashboard{% endblock %}
+
+{% block content %}
+<h1>Reports Dashboard</h1>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Patients</h5>
+                <p class="card-text display-6" id="totalPatients">0</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Appointments</h5>
+                <p class="card-text display-6" id="totalAppointments">0</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">Revenue</h5>
+                <p class="card-text display-6" id="totalRevenue">$0</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <h5 class="card-title">Unpaid Bills</h5>
+                <p class="card-text display-6" id="unpaidBills">0</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">Patient Visits (Last 30 Days)</div>
+            <div class="card-body">
+                <canvas id="visitsChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">Revenue Trend</div>
+            <div class="card-body">
+                <canvas id="revenueChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">Appointment Status</div>
+            <div class="card-body">
+                <canvas id="appointmentStatusChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">Doctor Workload</div>
+            <div class="card-body">
+                <canvas id="doctorWorkloadChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">Billing Status</div>
+            <div class="card-body">
+                <canvas id="billingStatusChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Fetch and update summary cards
+    fetch('/reports/api/summary')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('totalPatients').textContent = data.total_patients;
+            document.getElementById('totalAppointments').textContent = data.total_appointments;
+            document.getElementById('totalRevenue').textContent = '$' + data.total_revenue.toFixed(2);
+            document.getElementById('unpaidBills').textContent = data.unpaid_bills;
+        })
+        .catch(err => console.error('Error fetching summary:', err));
+
+    // Patient Visits Chart
+    fetch('/reports/api/patient_visits')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('visitsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Visits',
+                        data: data.values,
+                        borderColor: 'rgb(54, 162, 235)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        })
+        .catch(err => console.error('Error fetching visits:', err));
+
+    // Revenue Chart
+    fetch('/reports/api/revenue')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Revenue ($)',
+                        data: data.values,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        })
+        .catch(err => console.error('Error fetching revenue:', err));
+
+    // Appointment Status Chart (Pie)
+    fetch('/reports/api/appointment_status')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('appointmentStatusChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.values,
+                        backgroundColor: ['#36a2eb', '#4bc0c0', '#ff6384', '#ffce56']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        })
+        .catch(err => console.error('Error fetching appointment status:', err));
+
+    // Doctor Workload Chart
+    fetch('/reports/api/doctor_workload')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('doctorWorkloadChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Appointments',
+                        data: data.values,
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        })
+        .catch(err => console.error('Error fetching doctor workload:', err));
+
+    // Billing Status Chart
+    fetch('/reports/api/billing_status')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('billingStatusChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.counts,
+                        backgroundColor: ['#ff6384', '#36a2eb', '#4bc0c0', '#ffce56']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        })
+        .catch(err => console.error('Error fetching billing status:', err));
+</script>
+{% endblock %}
