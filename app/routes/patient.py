@@ -163,26 +163,43 @@ def delete(id):
 @bp.route('/<int:id>/discharge', methods=['GET', 'POST'])
 @login_required
 def discharge(id):
-    # Only doctors and admins can discharge
     if not (current_user.has_role('doctor') or current_user.has_role('admin')):
-        flash('Only doctors and admins can discharge patients.', 'danger')
+        flash('Only doctors and admins can discharge.', 'danger')
         return redirect(url_for('patient.view', id=id))
 
     patient = Patient.query.get_or_404(id)
-
     if patient.status == 'Discharged':
         flash('Patient already discharged.', 'warning')
         return redirect(url_for('patient.view', id=id))
 
+    # Get all medications (services with category='Medication')
+    medications = Service.query.filter_by(category='Medication').all()
+
     if request.method == 'POST':
         notes = request.form.get('notes', '')
 
+        # Collect medication items from form
+        medication_ids = request.form.getlist('medication_id[]')
+        quantities = request.form.getlist('quantity[]')
+        medication_items = []
+        for med_id, qty in zip(medication_ids, quantities):
+            if med_id and qty and int(qty) > 0:
+                medication_items.append({
+                    'service_id': int(med_id),
+                    'quantity': int(qty)
+                })
+
         try:
-            bill = DischargeService.generate_bill(patient.id, current_user.id, notes)
-            flash(f'Patient discharged successfully. Bill #{bill.id} created.', 'success')
+            bill = DischargeService.generate_bill(
+                patient.id,
+                current_user.id,
+                medication_items=medication_items,
+                notes=notes
+            )
+            flash(f'Patient discharged. Bill #{bill.id} created.', 'success')
             return redirect(url_for('billing.view', bill_id=bill.id))
         except Exception as e:
             flash(f'Error discharging patient: {str(e)}', 'danger')
             return redirect(url_for('patient.view', id=id))
 
-    return render_template('patient/discharge.html', patient=patient)
+    return render_template('patient/discharge.html', patient=patient, medications=medications)

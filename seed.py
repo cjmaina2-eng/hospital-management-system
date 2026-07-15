@@ -146,6 +146,31 @@ def seed_database():
                 db.session.add(record)
                 db.session.commit()
 
+        # Consultation fee (standard for every discharge)
+        consultation = Service(
+            name='Consultation Fee',
+            description='Standard consultation and check-up fee',
+            default_price=1000.00,
+            category='Consultation'
+        )
+        db.session.add(consultation)
+
+        # Medications
+        medications = [
+            Service(name='Paracetamol 500mg', description='Pain reliever and fever reducer', default_price=50.00, category='Medication'),
+            Service(name='Amoxicillin 500mg', description='Antibiotic', default_price=120.00, category='Medication'),
+            Service(name='Ibuprofen 400mg', description='Anti-inflammatory', default_price=80.00, category='Medication'),
+            Service(name='Omeprazole 20mg', description='Acid reducer', default_price=100.00, category='Medication'),
+            Service(name='Cetirizine 10mg', description='Antihistamine', default_price=60.00, category='Medication'),
+            Service(name='Metformin 500mg', description='Diabetes medication', default_price=90.00, category='Medication'),
+            Service(name='Lisinopril 10mg', description='Blood pressure medication', default_price=110.00, category='Medication'),
+            Service(name='Atorvastatin 20mg', description='Cholesterol reducer', default_price=130.00, category='Medication'),
+            Service(name='Salbutamol Inhaler', description='Asthma relief', default_price=250.00, category='Medication'),
+            Service(name='Diclofenac 50mg', description='Pain reliever', default_price=70.00, category='Medication'),
+        ]
+        for med in medications:
+            db.session.add(med)        
+
         print("✅ Database seeded successfully!")
         print("Admin: admin@hospital.com / admin123")
         print("Doctor: doctor@hospital.com / doctor123")

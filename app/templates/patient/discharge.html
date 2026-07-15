@@ -14,17 +14,39 @@
         </p>
     </div>
     <div class="card-body">
-        <div class="alert alert-warning">
+        <!-- Consultation Fee Note -->
+        <div class="alert alert-info">
             <i class="fas fa-info-circle"></i> 
-            <strong>Note:</strong> Discharging this patient will:
-            <ul class="mb-0 mt-2">
-                <li>Generate a bill for all services rendered</li>
-                <li>Mark the patient as "Discharged"</li>
-                <li>Send the bill to reception for payment processing</li>
-            </ul>
+            <strong>Consultation Fee:</strong> 1,000 KES will be added to the bill automatically.
         </div>
 
-        <form method="POST">
+        <form method="POST" id="dischargeForm">
+            <!-- Medications -->
+            <div class="mb-3">
+                <label class="form-label fw-bold"><i class="fas fa-pills"></i> Medications Prescribed</label>
+                <div id="medications-container">
+                    <div class="row medication-row mb-2">
+                        <div class="col-md-6">
+                            <select class="form-select" name="medication_id[]">
+                                <option value="">Select Medication</option>
+                                {% for med in medications %}
+                                <option value="{{ med.id }}">{{ med.name }} ({{ "%.2f"|format(med.default_price) }} KES)</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="number" class="form-control" name="quantity[]" placeholder="Qty" min="1" value="1">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-danger remove-medication">✕</button>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-secondary" id="add-medication">
+                    <i class="fas fa-plus"></i> Add Medication
+                </button>
+            </div>
+
             <div class="mb-3">
                 <label for="notes" class="form-label">Discharge Notes</label>
                 <textarea class="form-control" id="notes" name="notes" rows="3" 
@@ -42,4 +64,27 @@
         </form>
     </div>
 </div>
+
+<script>
+    // Add medication row
+    document.getElementById('add-medication').addEventListener('click', function() {
+        const container = document.getElementById('medications-container');
+        const row = container.querySelector('.medication-row').cloneNode(true);
+        row.querySelectorAll('input').forEach(inp => inp.value = inp.type === 'number' ? '1' : '');
+        row.querySelectorAll('select').forEach(sel => sel.selectedIndex = 0);
+        container.appendChild(row);
+    });
+
+    // Remove medication row
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-medication')) {
+            const row = e.target.closest('.medication-row');
+            if (document.querySelectorAll('.medication-row').length > 1) {
+                row.remove();
+            } else {
+                alert('At least one medication row is allowed, but you can leave it empty.');
+            }
+        }
+    });
+</script>
 {% endblock %}
