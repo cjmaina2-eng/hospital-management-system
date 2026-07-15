@@ -39,7 +39,7 @@
         <div class="stat-card" style="background: linear-gradient(135deg, #eab308, #ca8a04);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="stat-number">${{ total_revenue|default(0)|round(2) }}</div>
+                    <div class="stat-number">KES {{ total_revenue|default(0)|round(2) }}</div>
                     <div class="stat-label">Revenue</div>
                 </div>
                 <i class="fas fa-dollar-sign"></i>
@@ -83,10 +83,77 @@
         </a>
     </div>
     {% endif %}
+    {% if is_doctor %}
+    <div class="col-md-3 col-6">
+        <a href="{{ url_for('lab.order', patient_id=patient.id) }}" class="btn btn-info w-100 py-3">
+            <i class="fas fa-flask"></i><br>Order Lab Test
+        </a>
+    </div>
+    {% endif %}
 </div>
 
+<!-- Pending Appointments - Only for Doctors -->
+{% if is_doctor %}
+<div class="row mt-4">
+    <div class="col-12">
+        <h4 class="fw-bold"><i class="fas fa-clock text-warning"></i> Pending Appointments</h4>
+        <p class="text-muted small">Review and confirm appointments from patients</p>
+    </div>
+    {% if pending_appointments %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Date & Time</th>
+                                <th>Reason</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appt in pending_appointments %}
+                            <tr>
+                                <td>
+                                    <strong>{{ appt.patient.user.first_name }} {{ appt.patient.user.last_name }}</strong><br>
+                                    <small class="text-muted">ID: #{{ appt.patient.id }}</small>
+                                </td>
+                                <td>{{ appt.appointment_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>{{ appt.reason }}</td>
+                                <td>
+                                    <form action="{{ url_for('appointment.accept', id=appt.id) }}" method="POST" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="fas fa-check"></i> Accept
+                                        </button>
+                                    </form>
+                                    <form action="{{ url_for('appointment.reject', id=appt.id) }}" method="POST" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Reject this appointment?');">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No pending appointments. Great job!
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
 <!-- Recent Lists -->
-<div class="row g-3">
+<div class="row g-3 mt-3">
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
@@ -99,8 +166,18 @@
                         <div>
                             <strong>{{ appt.patient.user.first_name }} {{ appt.patient.user.last_name }}</strong>
                             <span class="text-muted ms-2">with Dr. {{ appt.doctor.user.last_name }}</span>
+                            <br>
+                            <span class="badge 
+                                {% if appt.status == 'Pending' %}bg-warning
+                                {% elif appt.status == 'Accepted' %}bg-success
+                                {% elif appt.status == 'Rejected' %}bg-danger
+                                {% elif appt.status == 'Completed' %}bg-info
+                                {% elif appt.status == 'Cancelled' %}bg-secondary
+                                {% else %}bg-primary{% endif %}">
+                                {{ appt.status }}
+                            </span>
                         </div>
-                        <span class="badge bg-primary">{{ appt.appointment_date.strftime('%Y-%m-%d %H:%M') }}</span>
+                        <span class="text-muted small">{{ appt.appointment_date.strftime('%Y-%m-%d %H:%M') }}</span>
                     </div>
                     {% else %}
                     <div class="list-group-item text-muted text-center">No recent appointments</div>

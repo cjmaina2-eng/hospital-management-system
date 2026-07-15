@@ -88,28 +88,28 @@ def new():
         conflict = Appointment.query.filter(
             Appointment.doctor_id == doctor_id,
             Appointment.appointment_date == dt,
-            Appointment.status != 'Cancelled'
+            Appointment.status.in_(['Pending', 'Accepted', 'Scheduled'])
         ).first()
         if conflict:
             flash('This time slot is already booked. Please choose another.', 'danger')
             return redirect(url_for('appointment.new'))
 
-        # Create appointment
+        # Create appointment with PENDING status
         appt = Appointment(
             patient_id=patient.id,
             doctor_id=doctor.id,
             appointment_date=dt,
             reason=reason,
-            status='Scheduled'
+            status='Pending'  # <-- Doctor must accept/reject
         )
         db.session.add(appt)
         db.session.commit()
 
-        flash('Appointment booked successfully!', 'success')
+        flash('Appointment booked successfully! Waiting for doctor confirmation.', 'success')
         return redirect(url_for('appointment.index'))
 
     # GET: prepare form data
-    doctors = Doctor.query.all()  # <-- All doctors, regardless of status
+    doctors = Doctor.query.all()  # All doctors, regardless of status
     patients = None
     if current_user.has_role('admin') or current_user.has_role('receptionist'):
         patients = Patient.query.all()
@@ -157,11 +157,11 @@ def check_availability():
             'message': f'Dr. {doctor.user.first_name} {doctor.user.last_name} is {reason}.'
         })
 
-    # Check conflicting appointments
+    # Check conflicting appointments (including pending ones)
     existing = Appointment.query.filter(
         Appointment.doctor_id == doctor_id,
         Appointment.appointment_date == dt,
-        Appointment.status != 'Cancelled'
+        Appointment.status.in_(['Pending', 'Accepted', 'Scheduled'])
     ).first()
     if existing:
         return jsonify({
@@ -197,7 +197,6 @@ def view(id):
     elif current_user.has_role('doctor'):
         doctor = Doctor.query.filter_by(user_id=current_user.id).first()
         if doctor and doctor.id != appointment.doctor_id:
-            # optionally allow any doctor to view? We'll restrict to the assigned doctor.
             flash('Access denied.', 'danger')
             return redirect(url_for('appointment.index'))
     elif current_user.has_role('admin') or current_user.has_role('receptionist'):
@@ -208,10 +207,54 @@ def view(id):
 
     return render_template('appointment/view.html', appointment=appointment)
 
+@bp.route('/<int:id>/accept', methods=['POST'])
+@login_required
+def accept(id):
+    """Doctor accepts a pending appointment."""
+    appointment = Appointment.query.get_or_404(id)
+    
+    # Only the assigned doctor can accept
+    doctor = Doctor.query.filter_by(user_id=current_user.id).first()
+    if not doctor or doctor.id != appointment.doctor_id:
+        flash('You are not authorized to accept this appointment.', 'danger')
+        return redirect(url_for('dashboard.index'))
+    
+    if appointment.status != 'Pending':
+        flash('This appointment is no longer pending.', 'warning')
+        return redirect(url_for('dashboard.index'))
+    
+    appointment.status = 'Accepted'
+    db.session.commit()
+    flash('Appointment accepted! Patient will be notified.', 'success')
+    return redirect(url_for('dashboard.index'))
+
+@bp.route('/<int:id>/reject', methods=['POST'])
+@login_required
+def reject(id):
+    """Doctor rejects a pending appointment."""
+    appointment = Appointment.query.get_or_404(id)
+    
+    # Only the assigned doctor can reject
+    doctor = Doctor.query.filter_by(user_id=current_user.id).first()
+    if not doctor or doctor.id != appointment.doctor_id:
+        flash('You are not authorized to reject this appointment.', 'danger')
+        return redirect(url_for('dashboard.index'))
+    
+    if appointment.status != 'Pending':
+        flash('This appointment is no longer pending.', 'warning')
+        return redirect(url_for('dashboard.index'))
+    
+    appointment.status = 'Rejected'
+    db.session.commit()
+    flash('Appointment rejected.', 'info')
+    return redirect(url_for('dashboard.index'))
+
 @bp.route('/<int:id>/cancel', methods=['POST'])
 @login_required
 def cancel(id):
+    """Cancel an appointment (patient, admin, receptionist)."""
     appointment = Appointment.query.get_or_404(id)
+    
     # Permissions: patient, admin, receptionist can cancel
     if current_user.has_role('patient'):
         patient = Patient.query.filter_by(user_id=current_user.id).first()

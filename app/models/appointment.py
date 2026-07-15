@@ -9,14 +9,14 @@ class Appointment(db.Model):
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id'), nullable=False)
     appointment_date = db.Column(db.DateTime, nullable=False)
     reason = db.Column(db.Text, nullable=False)
-    status = db.Column(db.String(20), default='Scheduled')  # Scheduled, Completed, Cancelled, No-Show
+    status = db.Column(db.String(20), default='Pending')  # Pending, Accepted, Rejected, Completed, Cancelled
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships (note: patient and doctor relationships added below)
+    # Relationships
     patient = db.relationship('Patient', back_populates='appointments')
     doctor = db.relationship('Doctor', back_populates='appointments')
     medical_record = db.relationship('MedicalRecord', back_populates='appointment', uselist=False)
     
     def __repr__(self):
-        return f'<Appointment {self.id}: {self.patient.user.first_name} with Dr. {self.doctor.user.last_name}>'
+        return f'<Appointment {self.id}: {self.patient.user.first_name} with Dr. {self.doctor.user.last_name} - {self.status}>'
