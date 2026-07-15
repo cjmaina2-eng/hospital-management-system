@@ -37,11 +37,10 @@
             </td>
             <td>
                 <a href="{{ url_for('billing.view', bill_id=bill.id) }}" class="btn btn-sm btn-info">View</a>
-                {% if current_user.has_role('admin') and bill.status != 'Paid' %}
-                <form action="{{ url_for('billing.delete', bill_id=bill.id) }}" method="POST" style="display:inline;">
-                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this bill?');">Delete</button>
-                </form>
+                {% if bill.status != 'Paid' and (current_user.has_role('patient') or current_user.has_role('admin') or current_user.has_role('receptionist')) %}
+                <a href="{{ url_for('billing.pay', bill_id=bill.id) }}" class="btn btn-sm btn-success">Pay</a>
                 {% endif %}
+                ...
             </td>
         </tr>
         {% else %}

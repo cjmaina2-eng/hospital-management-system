@@ -211,6 +211,26 @@ def record_payment(bill_id):
     flash('Payment recorded.', 'success')
     return redirect(url_for('billing.view', bill_id=bill_id))
 
+@bp.route('/<int:bill_id>/pay', methods=['GET'])
+@login_required
+def pay(bill_id):
+    bill = Bill.query.get_or_404(bill_id)
+    # Permission: patient can pay their own bills; admin/reception can pay any
+    if current_user.has_role('patient'):
+        patient = Patient.query.filter_by(user_id=current_user.id).first()
+        if not patient or patient.id != bill.patient_id:
+            flash('You can only pay your own bills.', 'danger')
+            return redirect(url_for('billing.index'))
+    elif not (current_user.has_role('admin') or current_user.has_role('receptionist')):
+        flash('Permission denied.', 'danger')
+        return redirect(url_for('billing.index'))
+
+    if bill.status == 'Paid':
+        flash('This bill is already fully paid.', 'warning')
+        return redirect(url_for('billing.view', bill_id=bill.id))
+
+    return render_template('billing/pay.html', bill=bill)
+
 @bp.route('/delete/<int:bill_id>', methods=['POST'])
 @login_required
 def delete(bill_id):
