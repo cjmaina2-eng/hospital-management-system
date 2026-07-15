@@ -4,6 +4,7 @@ from app import db
 from app.models import User, Role, Patient
 from datetime import datetime
 from app.services.discharge_service import DischargeService
+from app.models import Service
 
 bp = Blueprint('patient', __name__, url_prefix='/patients')
 
