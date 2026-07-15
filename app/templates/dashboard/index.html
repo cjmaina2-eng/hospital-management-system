@@ -64,6 +64,8 @@
     <div class="col-12">
         <h5 class="fw-bold"><i class="fas fa-bolt text-warning"></i> Quick Actions</h5>
     </div>
+    
+    <!-- Admin & Receptionist Actions -->
     {% if is_admin or is_receptionist %}
     <div class="col-md-3 col-6">
         <a href="{{ url_for('patient.new') }}" class="btn btn-primary w-100 py-3">
@@ -76,6 +78,8 @@
         </a>
     </div>
     {% endif %}
+    
+    <!-- Admin Only Actions -->
     {% if is_admin %}
     <div class="col-md-3 col-6">
         <a href="{{ url_for('auth.register') }}" class="btn btn-warning w-100 py-3">
@@ -83,10 +87,17 @@
         </a>
     </div>
     {% endif %}
+    
+    <!-- Doctor Actions -->
     {% if is_doctor %}
     <div class="col-md-3 col-6">
-        <a href="{{ url_for('lab.order', patient_id=patient.id) }}" class="btn btn-info w-100 py-3">
-            <i class="fas fa-flask"></i><br>Order Lab Test
+        <a href="{{ url_for('patient.index') }}" class="btn btn-info w-100 py-3">
+            <i class="fas fa-users"></i><br>View Patients
+        </a>
+    </div>
+    <div class="col-md-3 col-6">
+        <a href="{{ url_for('appointment.index') }}" class="btn btn-primary w-100 py-3">
+            <i class="fas fa-calendar-check"></i><br>My Appointments
         </a>
     </div>
     {% endif %}
@@ -187,6 +198,7 @@
         </div>
     </div>
 
+    <!-- Recent Medical Records - Role Restricted -->
     {% if recent_records is defined and recent_records %}
     <div class="col-md-6">
         <div class="card">
