@@ -32,6 +32,10 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    reset_token = db.Column(db.String(100), nullable=True)
+    reset_token_expires = db.Column(db.DateTime, nullable=True)
+    
+    # ... rest of relationships ...
     
     roles = db.relationship('Role', secondary=user_roles, back_populates='users')
     patient = db.relationship('Patient', back_populates='user', uselist=False, cascade='all, delete-orphan')

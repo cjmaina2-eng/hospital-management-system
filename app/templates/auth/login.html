@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container-fluid px-0">
     <div class="row g-0 min-vh-100">
-        <!-- Left Column: Branding & Stats (unchanged) -->
+        <!-- Left Column: Branding & Stats -->
         <div class="col-lg-6 d-none d-lg-flex flex-column justify-content-center px-5"
              style="background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); color: white; min-height: 100vh;">
             
@@ -63,11 +63,16 @@
                     <p class="text-muted">Hospital Management System</p>
                 </div>
 
-                <!-- Welcome Message -->
-                <div class="mb-4 p-3 bg-white rounded-4 shadow-sm" style="border: 1px solid #e2e8f0;">
-                    <h3 class="fw-bold mb-0" style="color: #2563eb;">
-                        <i class="fas fa-hand-sparkles me-2"></i>Welcome Back
-                    </h3>
+                <!-- Patient Type Toggle -->
+                <div class="d-flex gap-2 mb-4 p-1 bg-white rounded-4 shadow-sm" style="border: 1px solid #e2e8f0;">
+                    <a href="#" class="flex-fill text-center py-2 px-3 rounded-3 text-decoration-none fw-semibold active-tab"
+                       style="background: #2563eb; color: white; transition: all 0.2s;">
+                        <i class="fas fa-user-plus me-1"></i> New Patient
+                    </a>
+                    <a href="#" class="flex-fill text-center py-2 px-3 rounded-3 text-decoration-none fw-semibold text-secondary"
+                       style="transition: all 0.2s;">
+                        <i class="fas fa-user-check me-1"></i> Existing Patient
+                    </a>
                 </div>
 
                 <!-- Login Form -->
@@ -103,7 +108,7 @@
                                         </span>
                                         <input type="email" class="form-control form-control-lg border-0 bg-light"
                                                id="email" name="email"
-                                               placeholder="Enter your email or phone number" required>
+                                               placeholder="Enter your email" required>
                                     </div>
                                 </div>
                                 <div class="mb-2">
@@ -116,17 +121,17 @@
                                         </span>
                                         <input type="password" class="form-control form-control-lg border-0 bg-light"
                                                id="password" name="password"
-                                               placeholder="Enter your password" required>
-                                        <!-- Toggle Button -->
+                                               placeholder="********" required>
                                         <button class="btn btn-outline-secondary border-0 bg-light" type="button" 
                                                 id="togglePasswordBtn" onclick="togglePassword()">
                                             <i class="fas fa-eye" id="togglePasswordIcon"></i>
                                         </button>
                                     </div>
                                 </div>
+                                <!-- Forgot Password Link -->
                                 <div class="text-end mb-3">
-                                    <a href="#" class="text-decoration-none small text-primary fw-semibold">
-                                        Reset Password
+                                    <a href="{{ url_for('auth.forgot_password') }}" class="text-decoration-none small text-primary fw-semibold">
+                                        <i class="fas fa-key me-1"></i> Forgot Password?
                                     </a>
                                 </div>
                                 <button type="submit" class="btn btn-primary btn-lg w-100 rounded-4 py-3 fw-bold mb-3"
@@ -224,7 +229,6 @@
     .nav-tabs .nav-link i {
         margin-right: 4px;
     }
-    /* Toggle button styling */
     #togglePasswordBtn {
         border-radius: 0 12px 12px 0;
         padding: 0.75rem 1rem;

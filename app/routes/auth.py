@@ -150,3 +150,94 @@ def verify_code():
 
     flash('Invalid or expired code.', 'danger')
     return redirect(url_for('auth.login'))
+
+import secrets
+from datetime import datetime, timedelta
+from flask_mail import Message
+from app import mail
+
+@bp.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    """Request password reset link."""
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard.index'))
+    
+    if request.method == 'POST':
+        email = request.form.get('email')
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            flash('No account found with that email address.', 'danger')
+            return redirect(url_for('auth.forgot_password'))
+        
+        # Generate reset token
+        token = secrets.token_urlsafe(32)
+        user.reset_token = token
+        user.reset_token_expires = datetime.utcnow() + timedelta(hours=1)
+        db.session.commit()
+        
+        # Send reset email
+        reset_url = url_for('auth.reset_password', token=token, _external=True)
+        
+        try:
+            msg = Message(
+                subject="Password Reset - Hospital Management System",
+                sender=app.config['MAIL_DEFAULT_SENDER'],
+                recipients=[email],
+                html=f"""
+                <h2>Reset Your Password</h2>
+                <p>You requested to reset your password for the Hospital Management System.</p>
+                <p>Click the link below to reset your password (valid for 1 hour):</p>
+                <p><a href="{reset_url}" style="display:inline-block; padding:12px 24px; background:#2563eb; color:white; text-decoration:none; border-radius:8px;">Reset Password</a></p>
+                <p>If you did not request this, please ignore this email.</p>
+                <p>Thank you,<br>Hospital Management Team</p>
+                """
+            )
+            mail.send(msg)
+            flash('Password reset link sent to your email. Please check your inbox.', 'success')
+        except Exception as e:
+            app.logger.error(f"Email error: {e}")
+            flash('Could not send email. Please try again later.', 'danger')
+        
+        return redirect(url_for('auth.login'))
+    
+    return render_template('auth/forgot_password.html')
+
+@bp.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    """Reset password with token."""
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard.index'))
+    
+    # Find user with valid token
+    user = User.query.filter_by(reset_token=token).first()
+    if not user:
+        flash('Invalid or expired reset token.', 'danger')
+        return redirect(url_for('auth.forgot_password'))
+    
+    if user.reset_token_expires and user.reset_token_expires < datetime.utcnow():
+        flash('Reset link has expired. Please request a new one.', 'danger')
+        return redirect(url_for('auth.forgot_password'))
+    
+    if request.method == 'POST':
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        if not password or len(password) < 6:
+            flash('Password must be at least 6 characters.', 'danger')
+            return redirect(url_for('auth.reset_password', token=token))
+        
+        if password != confirm_password:
+            flash('Passwords do not match.', 'danger')
+            return redirect(url_for('auth.reset_password', token=token))
+        
+        # Update password
+        user.set_password(password)
+        user.reset_token = None
+        user.reset_token_expires = None
+        db.session.commit()
+        
+        flash('Your password has been reset successfully. Please login.', 'success')
+        return redirect(url_for('auth.login'))
+    
+    return render_template('auth/reset_password.html', token=token)
