@@ -1,7 +1,7 @@
 ﻿from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import db
+from app import db, login_manager
 
 # Association table for many-to-many relationship between User and Role
 user_roles = db.Table('user_roles',
@@ -32,10 +32,10 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Reset Password Fields
     reset_token = db.Column(db.String(100), nullable=True)
     reset_token_expires = db.Column(db.DateTime, nullable=True)
-    
-    # ... rest of relationships ...
     
     roles = db.relationship('Role', secondary=user_roles, back_populates='users')
     patient = db.relationship('Patient', back_populates='user', uselist=False, cascade='all, delete-orphan')
@@ -52,3 +52,7 @@ class User(UserMixin, db.Model):
     
     def __repr__(self):
         return f'<User {self.email}>'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
