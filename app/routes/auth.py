@@ -167,6 +167,16 @@ def verify_code():
 
 # --- Forgot Password Routes ---
 
+import threading
+
+def send_reset_email_async(app, msg):
+    """Send email in a separate thread to avoid blocking."""
+    with app.app_context():
+        try:
+            mail.send(msg)
+        except Exception as e:
+            app.logger.error(f"Async email error: {e}")
+
 @bp.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     """Request password reset link."""
@@ -187,7 +197,7 @@ def forgot_password():
         user.reset_token_expires = datetime.utcnow() + timedelta(hours=1)
         db.session.commit()
         
-        # Send reset email
+        # Send reset email (async)
         reset_url = url_for('auth.reset_password', token=token, _external=True)
         
         try:
@@ -204,7 +214,10 @@ def forgot_password():
                 <p>Thank you,<br>Hospital Management Team</p>
                 """
             )
-            mail.send(msg)
+            # Send email in background thread
+            thread = threading.Thread(target=send_reset_email_async, args=(current_app._get_current_object(), msg))
+            thread.daemon = True
+            thread.start()
             flash('Password reset link sent to your email. Please check your inbox.', 'success')
         except Exception as e:
             current_app.logger.error(f"Email error: {e}")
