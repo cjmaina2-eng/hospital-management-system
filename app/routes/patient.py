@@ -26,7 +26,6 @@ def index():
 @bp.route('/new', methods=['GET', 'POST'])
 @login_required
 def new():
-    # Only admin and receptionist can create patients
     if not admin_or_receptionist_required():
         flash('You do not have permission to register patients.', 'danger')
         return redirect(url_for('dashboard.index'))
@@ -57,6 +56,12 @@ def new():
         if User.query.filter_by(email=email).first():
             flash('Email already registered.', 'danger')
             return redirect(url_for('patient.new'))
+        
+        # --- CHECK FOR DUPLICATE NATIONAL ID ---
+        if Patient.query.filter_by(national_id=national_id).first():
+            flash('A patient with this National ID already exists.', 'danger')
+            return redirect(url_for('patient.new'))
+        # ----------------------------------------
         
         # Create user with role 'patient'
         patient_role = Role.query.filter_by(name='patient').first()
@@ -124,9 +129,20 @@ def edit(id):
         # Update user fields
         user.first_name = request.form.get('first_name')
         user.last_name = request.form.get('last_name')
-        # Optionally update email? Might be better to prevent email change for simplicity.
+        
+        # --- CHECK FOR DUPLICATE NATIONAL ID (exclude current patient) ---
+        national_id = request.form.get('national_id')
+        existing = Patient.query.filter(
+            Patient.national_id == national_id,
+            Patient.id != id
+        ).first()
+        if existing:
+            flash('A patient with this National ID already exists.', 'danger')
+            return redirect(url_for('patient.edit', id=id))
+        # ----------------------------------------------------------------
+        
         # Update patient fields
-        patient.national_id = request.form.get('national_id')
+        patient.national_id = national_id
         patient.date_of_birth = datetime.strptime(request.form.get('date_of_birth'), '%Y-%m-%d').date()
         patient.gender = request.form.get('gender')
         patient.phone = request.form.get('phone')
