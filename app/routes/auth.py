@@ -197,9 +197,11 @@ def forgot_password():
         user.reset_token_expires = datetime.utcnow() + timedelta(hours=1)
         db.session.commit()
         
-        # Send reset email (async)
+        # Build reset URL
         reset_url = url_for('auth.reset_password', token=token, _external=True)
         
+        # --- TRY TO SEND EMAIL ---
+        email_sent = False
         try:
             msg = Message(
                 subject="Password Reset - Hospital Management System",
@@ -214,19 +216,20 @@ def forgot_password():
                 <p>Thank you,<br>Hospital Management Team</p>
                 """
             )
-            # Send email in background thread
-            thread = threading.Thread(target=send_reset_email_async, args=(current_app._get_current_object(), msg))
-            thread.daemon = True
-            thread.start()
+            mail.send(msg)
+            email_sent = True
             flash('Password reset link sent to your email. Please check your inbox.', 'success')
         except Exception as e:
             current_app.logger.error(f"Email error: {e}")
-            flash('Could not send email. Please try again later.', 'danger')
+            flash(f'Could not send email. Please contact support or use the link below.', 'warning')
+        
+        # --- FALLBACK: Show reset link directly in flash ---
+        if not email_sent:
+            flash(f'Reset link: {reset_url}', 'info')
         
         return redirect(url_for('auth.login'))
     
     return render_template('auth/forgot_password.html')
-
 @bp.route('/reset-password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     """Reset password with token."""
