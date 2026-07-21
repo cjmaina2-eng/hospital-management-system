@@ -20,9 +20,18 @@ def seed_database():
         db.session.commit()
 
         # Create admin
-        if not User.query.filter_by(email='admin@kirwarahospital.com').first():
+        admin_email = 'kirwarahospital373@gmail.com'
+        legacy_admin_emails = ['admin@kirwarahospital.com', 'admin@hospital.com']
+        existing_admin = User.query.filter_by(email=admin_email).first()
+        admin = next(
+            (User.query.filter_by(email=email).first() for email in legacy_admin_emails),
+            None
+        )
+        if admin and not existing_admin:
+            admin.email = admin_email
+        elif not existing_admin:
             admin = User(
-                email='admin@kirwarahospital.com',  # New email
+                email=admin_email,
                 first_name='Kirwara',
                 last_name='Admin',
                 is_active=True
@@ -171,7 +180,7 @@ def seed_database():
             db.session.add(med)        
 
         print("✅ Database seeded successfully!")
-        print("Admin: admin@kirwarahospital.com / admin123")
+        print(f"Admin: {admin_email} / admin123")
         print("Doctor: doctor@hospital.com / doctor123")
         print("Patient: patient@example.com / patient123")
         print("Lab Technician: lab@hospital.com / lab123")
