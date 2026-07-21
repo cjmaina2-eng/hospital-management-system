@@ -1,43 +1,169 @@
 {% extends "base.html" %}
 
-{% block title %}Update Doctor Status{% endblock %}
+{% block title %}Doctor Status{% endblock %}
 
 {% block content %}
-<h1><i class="fas fa-user-md text-primary"></i> Update Status</h1>
+<style>
+    .status-option {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.85rem 1rem;
+    }
+</style>
 
-<div class="card">
-    <div class="card-header">
-        <h5>Dr. {{ doctor.user.first_name }} {{ doctor.user.last_name }}</h5>
-        <p class="text-muted mb-0">{{ doctor.specialization }} - {{ doctor.department }}</p>
+<div class="page-header">
+    <div>
+        <div class="page-kicker">Doctor Workspace</div>
+        <h1 class="page-title">My Status</h1>
+        <p class="page-subtitle">Update your availability and respond to patient appointment requests.</p>
     </div>
-    <div class="card-body">
-        <form method="POST">
-            <div class="mb-3">
-                <label for="status" class="form-label fw-semibold">Current Status</label>
-                <select class="form-select form-select-lg" id="status" name="status">
-                    <option value="free" {% if doctor.status == 'free' %}selected{% endif %}>🟢 Free - Available for appointments</option>
-                    <option value="in_session" {% if doctor.status == 'in_session' %}selected{% endif %}>🔵 In Session - Consulting with patient</option>
-                    <option value="lunch_break" {% if doctor.status == 'lunch_break' %}selected{% endif %}>🟡 Lunch Break - Not available</option>
-                    <option value="in_surgery" {% if doctor.status == 'in_surgery' %}selected{% endif %}>🔮 In Surgery - Not available</option>
-                    <option value="on_leave" {% if doctor.status == 'on_leave' %}selected{% endif %}>🔴 On Leave - Not available</option>
-                </select>
+    <span class="badge
+        {% if doctor.status == 'free' %}bg-success
+        {% elif doctor.status == 'in_session' %}bg-primary
+        {% elif doctor.status == 'lunch_break' %}bg-warning text-dark
+        {% elif doctor.status == 'in_surgery' %}bg-info
+        {% else %}bg-danger{% endif %}">
+        {{ doctor.status.replace('_', ' ').title() }}
+    </span>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-4">
+        <div class="summary-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="summary-label">Doctor</div>
+                    <div class="summary-value h4 mb-0">Dr. {{ doctor.user.first_name }} {{ doctor.user.last_name }}</div>
+                    <div class="text-muted small mt-2">{{ doctor.specialization }}{% if doctor.department %} - {{ doctor.department }}{% endif %}</div>
+                </div>
+                <span class="summary-icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-user-doctor"></i></span>
             </div>
-            <button type="submit" class="btn btn-primary btn-lg">
-                <i class="fas fa-save"></i> Update Status
-            </button>
-            <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary">Cancel</a>
-        </form>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="summary-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="summary-label">Pending Requests</div>
+                    <div class="summary-value">{{ pending_appointments|length }}</div>
+                    <div class="text-muted small mt-2">Awaiting your review</div>
+                </div>
+                <span class="summary-icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-clock"></i></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="summary-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="summary-label">Availability</div>
+                    <div class="summary-value h4 mb-0">{{ 'Open' if doctor.status == 'free' else 'Limited' }}</div>
+                    <div class="text-muted small mt-2">Controls new appointment availability</div>
+                </div>
+                <span class="summary-icon bg-success bg-opacity-10 text-success"><i class="fas fa-signal"></i></span>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="mt-4">
-    <h5>Status Legend</h5>
-    <ul class="list-unstyled">
-        <li><span class="badge bg-success">Free</span> - Available for bookings</li>
-        <li><span class="badge bg-primary">In Session</span> - Currently with a patient (no new bookings)</li>
-        <li><span class="badge bg-warning">Lunch Break</span> - Not available</li>
-        <li><span class="badge bg-info">In Surgery</span> - Not available</li>
-        <li><span class="badge bg-danger">On Leave</span> - Not available</li>
-    </ul>
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="surface h-100">
+            <div class="surface-header">
+                <h2 class="surface-title"><i class="fas fa-stethoscope text-primary me-2"></i>Availability Status</h2>
+            </div>
+            <div class="p-3">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="status" class="form-label fw-semibold">Current Status</label>
+                        <select class="form-select form-select-lg" id="status" name="status">
+                            <option value="free" {% if doctor.status == 'free' %}selected{% endif %}>Free - Available for appointments</option>
+                            <option value="in_session" {% if doctor.status == 'in_session' %}selected{% endif %}>In Session - Consulting with patient</option>
+                            <option value="lunch_break" {% if doctor.status == 'lunch_break' %}selected{% endif %}>Lunch Break - Not available</option>
+                            <option value="in_surgery" {% if doctor.status == 'in_surgery' %}selected{% endif %}>In Surgery - Not available</option>
+                            <option value="on_leave" {% if doctor.status == 'on_leave' %}selected{% endif %}>On Leave - Not available</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2 d-sm-flex">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Update Status
+                        </button>
+                        <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+
+                <div class="border-top mt-4 pt-4">
+                    <div class="status-option mb-2">
+                        <span class="badge bg-success me-2">Free</span>
+                        Available for new bookings.
+                    </div>
+                    <div class="status-option mb-2">
+                        <span class="badge bg-primary me-2">In Session</span>
+                        Currently consulting with a patient.
+                    </div>
+                    <div class="status-option">
+                        <span class="badge bg-danger me-2">On Leave</span>
+                        Unavailable until status changes.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="surface h-100">
+            <div class="surface-header">
+                <h2 class="surface-title"><i class="fas fa-calendar-check text-primary me-2"></i>Pending Appointment Requests</h2>
+                <span class="badge bg-warning text-dark">{{ pending_appointments|length }} pending</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Date/Time</th>
+                            <th>Reason</th>
+                            <th class="text-end">Decision</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appt in pending_appointments %}
+                        <tr>
+                            <td>
+                                <strong>{{ appt.patient.user.first_name }} {{ appt.patient.user.last_name }}</strong>
+                                <div class="text-muted small">{{ appt.patient.user.email }}</div>
+                            </td>
+                            <td>
+                                <span class="fw-semibold">{{ appt.appointment_date.strftime('%Y-%m-%d') }}</span>
+                                <div class="text-muted small">{{ appt.appointment_date.strftime('%H:%M') }}</div>
+                            </td>
+                            <td class="text-muted">{{ appt.reason }}</td>
+                            <td class="text-end">
+                                <form action="{{ url_for('appointment.accept', id=appt.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        <i class="fas fa-check"></i> Accept
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('appointment.reject', id=appt.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Reject this appointment request?');">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="empty-state">
+                                <i class="fas fa-circle-check fa-2x text-success d-block mb-2"></i>
+                                No pending appointment requests.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

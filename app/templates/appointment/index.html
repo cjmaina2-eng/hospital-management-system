@@ -119,6 +119,18 @@
                             <a href="{{ url_for('appointment.view', id=appt.id) }}" class="btn btn-sm btn-outline-info">
                                 <i class="fas fa-eye"></i><span class="visually-hidden">View appointment</span>
                             </a>
+                            {% if appt.status == 'Pending' and current_user.has_role('doctor') %}
+                            <form action="{{ url_for('appointment.accept', id=appt.id) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-check"></i><span class="visually-hidden">Accept appointment</span>
+                                </button>
+                            </form>
+                            <form action="{{ url_for('appointment.reject', id=appt.id) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Reject this appointment?');">
+                                    <i class="fas fa-times"></i><span class="visually-hidden">Reject appointment</span>
+                                </button>
+                            </form>
+                            {% endif %}
                             {% if appt.status not in ['Cancelled', 'Completed'] and (current_user.has_role('patient') or current_user.has_role('admin') or current_user.has_role('receptionist')) %}
                             <form action="{{ url_for('appointment.cancel', id=appt.id) }}" method="POST" style="display:inline;">
                                 <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Cancel this appointment?');">

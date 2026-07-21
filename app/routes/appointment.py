@@ -1,10 +1,46 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
+import threading
+
+from flask import Blueprint, current_app, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
+from flask_mail import Message
 from app import db
+from app import mail
 from app.models import Appointment, Patient, Doctor
 from datetime import datetime
 
 bp = Blueprint('appointment', __name__, url_prefix='/appointments')
+
+
+def send_email_async(app, msg):
+    with app.app_context():
+        try:
+            mail.send(msg)
+        except Exception as e:
+            app.logger.error(f"Appointment email error: {e}")
+
+
+def queue_appointment_email(appointment, decision):
+    patient_user = appointment.patient.user
+    doctor_user = appointment.doctor.user
+    status_text = decision.lower()
+    appointment_url = url_for('appointment.view', id=appointment.id, _external=True)
+    msg = Message(
+        subject=f"Appointment {decision} - Kirwara Hospital",
+        sender=current_app.config['MAIL_DEFAULT_SENDER'],
+        recipients=[patient_user.email],
+        html=f"""
+        <p>Dear <strong>{patient_user.first_name}</strong>,</p>
+        <p>Your appointment with <strong>Dr. {doctor_user.first_name} {doctor_user.last_name}</strong>
+        on <strong>{appointment.appointment_date.strftime('%B %d, %Y at %H:%M')}</strong>
+        has been <strong>{status_text}</strong>.</p>
+        <p><strong>Reason:</strong> {appointment.reason}</p>
+        <p><a href="{appointment_url}">View appointment details</a></p>
+        <p>Thank you,<br>Kirwara Hospital Team</p>
+        """
+    )
+    app = current_app._get_current_object()
+    thread = threading.Thread(target=send_email_async, args=(app, msg), daemon=True)
+    thread.start()
 
 @bp.route('/')
 @login_required
@@ -225,8 +261,9 @@ def accept(id):
     
     appointment.status = 'Accepted'
     db.session.commit()
-    flash('Appointment accepted! Patient will be notified.', 'success')
-    return redirect(url_for('dashboard.index'))
+    queue_appointment_email(appointment, 'Accepted')
+    flash('Appointment accepted. The patient has been notified by email.', 'success')
+    return redirect(request.referrer or url_for('dashboard.index'))
 
 @bp.route('/<int:id>/reject', methods=['POST'])
 @login_required
@@ -246,8 +283,9 @@ def reject(id):
     
     appointment.status = 'Rejected'
     db.session.commit()
-    flash('Appointment rejected.', 'info')
-    return redirect(url_for('dashboard.index'))
+    queue_appointment_email(appointment, 'Rejected')
+    flash('Appointment rejected. The patient has been notified by email.', 'info')
+    return redirect(request.referrer or url_for('dashboard.index'))
 
 @bp.route('/<int:id>/cancel', methods=['POST'])
 @login_required

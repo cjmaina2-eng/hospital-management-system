@@ -450,6 +450,11 @@
                         </li>
                     {% else %}
                         <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.signup') }}">
+                                <i class="fas fa-user-plus"></i> Patient Sign Up
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('auth.login') }}">
                                 <i class="fas fa-sign-in-alt"></i> Login
                             </a>

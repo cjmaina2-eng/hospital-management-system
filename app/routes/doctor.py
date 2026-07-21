@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app import db
-from app.models import Doctor
+from app.models import Appointment, Doctor
 
 bp = Blueprint('doctor', __name__, url_prefix='/doctor')
 
@@ -38,7 +38,14 @@ def status():
             flash('Invalid status.', 'danger')
         return redirect(url_for('doctor.status'))
     
+    pending_appointments = (
+        Appointment.query
+        .filter_by(doctor_id=doctor.id, status='Pending')
+        .order_by(Appointment.appointment_date.asc())
+        .all()
+    )
+
     # GET: show form
-    return render_template('doctor/status.html', doctor=doctor)
+    return render_template('doctor/status.html', doctor=doctor, pending_appointments=pending_appointments)
 
 # Also add a route for admin to list doctors (optional)

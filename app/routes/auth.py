@@ -7,7 +7,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 from flask_mail import Message
 
 from app import db, mail
-from app.models import Role, User, VerificationCode
+from app.models import Patient, Role, User, VerificationCode
 
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -95,6 +95,89 @@ def register():
 
     roles = Role.query.all()
     return render_template('auth/register.html', roles=roles)
+
+
+@bp.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard.index'))
+
+    if request.method == 'POST':
+        email = request.form.get('email')
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        national_id = request.form.get('national_id')
+        date_of_birth = request.form.get('date_of_birth')
+        gender = request.form.get('gender')
+        phone = request.form.get('phone')
+
+        if not all([email, first_name, last_name, password, confirm_password, national_id, date_of_birth, gender, phone]):
+            flash('Please complete all required fields.', 'danger')
+            return redirect(url_for('auth.signup'))
+
+        if password != confirm_password:
+            flash('Passwords do not match.', 'danger')
+            return redirect(url_for('auth.signup'))
+
+        if len(password) < 6:
+            flash('Password must be at least 6 characters.', 'danger')
+            return redirect(url_for('auth.signup'))
+
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered.', 'danger')
+            return redirect(url_for('auth.signup'))
+
+        if Patient.query.filter_by(national_id=national_id).first():
+            flash('A patient with this National ID already exists.', 'danger')
+            return redirect(url_for('auth.signup'))
+
+        patient_role = Role.query.filter_by(name='patient').first()
+        if not patient_role:
+            flash('Patient role not found. Please contact the administrator.', 'danger')
+            return redirect(url_for('auth.signup'))
+
+        try:
+            dob = datetime.strptime(date_of_birth, '%Y-%m-%d').date()
+        except ValueError:
+            flash('Please enter a valid date of birth.', 'danger')
+            return redirect(url_for('auth.signup'))
+
+        user = User(
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            is_active=True
+        )
+        user.set_password(password)
+        user.roles.append(patient_role)
+        db.session.add(user)
+        db.session.flush()
+
+        patient = Patient(
+            user_id=user.id,
+            national_id=national_id,
+            date_of_birth=dob,
+            gender=gender,
+            phone=phone,
+            address=request.form.get('address'),
+            city=request.form.get('city'),
+            state=request.form.get('state'),
+            postal_code=request.form.get('postal_code'),
+            blood_type=request.form.get('blood_type'),
+            allergies=request.form.get('allergies'),
+            emergency_contact_name=request.form.get('emergency_contact_name'),
+            emergency_contact_phone=request.form.get('emergency_contact_phone'),
+            emergency_contact_relationship=request.form.get('emergency_contact_relationship')
+        )
+        db.session.add(patient)
+        db.session.commit()
+
+        flash('Your patient account has been created. Please sign in.', 'success')
+        return redirect(url_for('auth.login'))
+
+    return render_template('auth/signup.html')
 
 
 @bp.route('/send-code', methods=['POST'])
