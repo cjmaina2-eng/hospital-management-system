@@ -3,41 +3,142 @@
 {% block title %}Appointments{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>My Appointments</h1>
+{% set pending_count = appointments|selectattr('status', 'equalto', 'Pending')|list|length %}
+{% set accepted_count = appointments|selectattr('status', 'equalto', 'Accepted')|list|length %}
+{% set completed_count = appointments|selectattr('status', 'equalto', 'Completed')|list|length %}
+
+<div class="page-header">
+    <div>
+        <div class="page-kicker">Scheduling</div>
+        <h1 class="page-title">Appointments</h1>
+        <p class="page-subtitle">Track patient visits, confirmation status, and upcoming clinical schedules.</p>
+    </div>
     {% if current_user.has_role('patient') or current_user.has_role('admin') or current_user.has_role('receptionist') %}
-    <a href="{{ url_for('appointment.new') }}" class="btn btn-primary">Book Appointment</a>
+    <a href="{{ url_for('appointment.new') }}" class="btn btn-primary flex-shrink-0">
+        <i class="fas fa-calendar-plus"></i> Book Appointment
+    </a>
     {% endif %}
 </div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Patient</th>
-            <th>Doctor</th>
-            <th>Date/Time</th>
-            {% if not (current_user.has_role('admin') or current_user.has_role('receptionist')) %}
-            <th>Reason</th>  <!-- hidden for admin/reception -->
-            {% endif %}
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for appt in appointments %}
-        <tr>
-            <td>{{ appt.id }}</td>
-            <td>{{ appt.patient.user.first_name }} {{ appt.patient.user.last_name }}</td>
-            <td>Dr. {{ appt.doctor.user.first_name }} {{ appt.doctor.user.last_name }}</td>
-            <td>{{ appt.appointment_date.strftime('%Y-%m-%d %H:%M') }}</td>
-            {% if not (current_user.has_role('admin') or current_user.has_role('receptionist')) %}
-            <td>{{ appt.reason }}</td>
-            {% endif %}
-            <td>...</td>
-            <td>...</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="summary-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="summary-label">Total</div>
+                    <div class="summary-value">{{ appointments|length }}</div>
+                </div>
+                <span class="summary-icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-calendar-check"></i></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="summary-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="summary-label">Pending</div>
+                    <div class="summary-value">{{ pending_count }}</div>
+                </div>
+                <span class="summary-icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-clock"></i></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="summary-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="summary-label">Accepted</div>
+                    <div class="summary-value">{{ accepted_count }}</div>
+                </div>
+                <span class="summary-icon bg-success bg-opacity-10 text-success"><i class="fas fa-circle-check"></i></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="summary-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="summary-label">Completed</div>
+                    <div class="summary-value">{{ completed_count }}</div>
+                </div>
+                <span class="summary-icon bg-info bg-opacity-10 text-info"><i class="fas fa-clipboard-check"></i></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="surface">
+    <div class="surface-header">
+        <h2 class="surface-title"><i class="fas fa-list-check text-primary me-2"></i>Appointment Queue</h2>
+        <span class="badge bg-primary">{{ appointments|length }} records</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Patient</th>
+                    <th>Doctor</th>
+                    <th>Date/Time</th>
+                    {% if not (current_user.has_role('admin') or current_user.has_role('receptionist')) %}
+                    <th>Reason</th>
+                    {% endif %}
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appt in appointments %}
+                <tr>
+                    <td><span class="badge bg-light text-dark">#{{ appt.id }}</span></td>
+                    <td>
+                        <strong>{{ appt.patient.user.first_name }} {{ appt.patient.user.last_name }}</strong>
+                        <div class="text-muted small">Patient ID: #{{ appt.patient.id }}</div>
+                    </td>
+                    <td>Dr. {{ appt.doctor.user.first_name }} {{ appt.doctor.user.last_name }}</td>
+                    <td>
+                        <span class="fw-semibold">{{ appt.appointment_date.strftime('%Y-%m-%d') }}</span>
+                        <div class="text-muted small">{{ appt.appointment_date.strftime('%H:%M') }}</div>
+                    </td>
+                    {% if not (current_user.has_role('admin') or current_user.has_role('receptionist')) %}
+                    <td class="text-muted">{{ appt.reason }}</td>
+                    {% endif %}
+                    <td>
+                        <span class="badge
+                            {% if appt.status == 'Pending' %}bg-warning text-dark
+                            {% elif appt.status == 'Accepted' %}bg-success
+                            {% elif appt.status == 'Rejected' %}bg-danger
+                            {% elif appt.status == 'Completed' %}bg-info
+                            {% elif appt.status == 'Cancelled' %}bg-secondary
+                            {% else %}bg-primary{% endif %}">
+                            {{ appt.status }}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <div class="btn-group" role="group">
+                            <a href="{{ url_for('appointment.view', id=appt.id) }}" class="btn btn-sm btn-outline-info">
+                                <i class="fas fa-eye"></i><span class="visually-hidden">View appointment</span>
+                            </a>
+                            {% if appt.status not in ['Cancelled', 'Completed'] and (current_user.has_role('patient') or current_user.has_role('admin') or current_user.has_role('receptionist')) %}
+                            <form action="{{ url_for('appointment.cancel', id=appt.id) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Cancel this appointment?');">
+                                    <i class="fas fa-ban"></i><span class="visually-hidden">Cancel appointment</span>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="{% if current_user.has_role('admin') or current_user.has_role('receptionist') %}6{% else %}7{% endif %}" class="empty-state">
+                        <i class="fas fa-calendar-xmark fa-2x text-muted d-block mb-2"></i>
+                        No appointments found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}

@@ -3,85 +3,123 @@
 {% block title %}Reports Dashboard{% endblock %}
 
 {% block content %}
-<h1>Reports Dashboard</h1>
+<style>
+    .chart-box {
+        height: 280px;
+        position: relative;
+    }
 
-<!-- Summary Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card text-white bg-primary">
-            <div class="card-body">
-                <h5 class="card-title">Patients</h5>
-                <p class="card-text display-6" id="totalPatients">0</p>
+    .chart-box-sm {
+        height: 240px;
+        position: relative;
+    }
+</style>
+
+<div class="page-header">
+    <div>
+        <div class="page-kicker">Analytics</div>
+        <h1 class="page-title">Reports Dashboard</h1>
+        <p class="page-subtitle">Use operational trends to understand patient volume, revenue, appointments, and workload.</p>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="summary-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="summary-label">Patients</div>
+                    <div class="summary-value" id="totalPatients">0</div>
+                </div>
+                <span class="summary-icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-users"></i></span>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-success">
-            <div class="card-body">
-                <h5 class="card-title">Appointments</h5>
-                <p class="card-text display-6" id="totalAppointments">0</p>
+    <div class="col-sm-6 col-xl-3">
+        <div class="summary-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="summary-label">Appointments</div>
+                    <div class="summary-value" id="totalAppointments">0</div>
+                </div>
+                <span class="summary-icon bg-success bg-opacity-10 text-success"><i class="fas fa-calendar-check"></i></span>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning">
-            <div class="card-body">
-                <h5 class="card-title">Revenue</h5>
-                <p class="card-text display-6" id="totalRevenue">$0</p>
+    <div class="col-sm-6 col-xl-3">
+        <div class="summary-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="summary-label">Revenue</div>
+                    <div class="summary-value" id="totalRevenue">KES 0</div>
+                </div>
+                <span class="summary-icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-coins"></i></span>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-danger">
-            <div class="card-body">
-                <h5 class="card-title">Unpaid Bills</h5>
-                <p class="card-text display-6" id="unpaidBills">0</p>
+    <div class="col-sm-6 col-xl-3">
+        <div class="summary-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="summary-label">Unpaid Bills</div>
+                    <div class="summary-value" id="unpaidBills">0</div>
+                </div>
+                <span class="summary-icon bg-danger bg-opacity-10 text-danger"><i class="fas fa-file-circle-exclamation"></i></span>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Charts Row -->
-<div class="row">
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header">Patient Visits (Last 30 Days)</div>
-            <div class="card-body">
-                <canvas id="visitsChart" height="200"></canvas>
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="surface mb-3">
+            <div class="surface-header">
+                <h2 class="surface-title"><i class="fas fa-chart-line text-primary me-2"></i>Patient Visits</h2>
+                <span class="text-muted small">Last 30 days</span>
+            </div>
+            <div class="p-3 chart-box">
+                <canvas id="visitsChart"></canvas>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header">Revenue Trend</div>
-            <div class="card-body">
-                <canvas id="revenueChart" height="200"></canvas>
+    <div class="col-lg-6">
+        <div class="surface mb-3">
+            <div class="surface-header">
+                <h2 class="surface-title"><i class="fas fa-chart-column text-success me-2"></i>Revenue Trend</h2>
+                <span class="text-muted small">Paid amounts</span>
+            </div>
+            <div class="p-3 chart-box">
+                <canvas id="revenueChart"></canvas>
             </div>
         </div>
     </div>
-</div>
-<div class="row">
-    <div class="col-md-4">
-        <div class="card mb-4">
-            <div class="card-header">Appointment Status</div>
-            <div class="card-body">
-                <canvas id="appointmentStatusChart" height="200"></canvas>
+    <div class="col-lg-4">
+        <div class="surface mb-3">
+            <div class="surface-header">
+                <h2 class="surface-title"><i class="fas fa-calendar-days text-info me-2"></i>Appointment Status</h2>
+            </div>
+            <div class="p-3 chart-box-sm">
+                <canvas id="appointmentStatusChart"></canvas>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card mb-4">
-            <div class="card-header">Doctor Workload</div>
-            <div class="card-body">
-                <canvas id="doctorWorkloadChart" height="200"></canvas>
+    <div class="col-lg-4">
+        <div class="surface mb-3">
+            <div class="surface-header">
+                <h2 class="surface-title"><i class="fas fa-user-doctor text-primary me-2"></i>Doctor Workload</h2>
+            </div>
+            <div class="p-3 chart-box-sm">
+                <canvas id="doctorWorkloadChart"></canvas>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card mb-4">
-            <div class="card-header">Billing Status</div>
-            <div class="card-body">
-                <canvas id="billingStatusChart" height="200"></canvas>
+    <div class="col-lg-4">
+        <div class="surface mb-3">
+            <div class="surface-header">
+                <h2 class="surface-title"><i class="fas fa-wallet text-warning me-2"></i>Billing Status</h2>
+            </div>
+            <div class="p-3 chart-box-sm">
+                <canvas id="billingStatusChart"></canvas>
             </div>
         </div>
     </div>
@@ -97,7 +135,7 @@
         .then(data => {
             document.getElementById('totalPatients').textContent = data.total_patients;
             document.getElementById('totalAppointments').textContent = data.total_appointments;
-            document.getElementById('totalRevenue').textContent = '$' + data.total_revenue.toFixed(2);
+            document.getElementById('totalRevenue').textContent = 'KES ' + data.total_revenue.toFixed(2);
             document.getElementById('unpaidBills').textContent = data.unpaid_bills;
         })
         .catch(err => console.error('Error fetching summary:', err));
@@ -114,8 +152,10 @@
                     datasets: [{
                         label: 'Visits',
                         data: data.values,
-                        borderColor: 'rgb(54, 162, 235)',
-                        tension: 0.1
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.12)',
+                        fill: true,
+                        tension: 0.35
                     }]
                 },
                 options: {
@@ -136,10 +176,10 @@
                 data: {
                     labels: data.labels,
                     datasets: [{
-                        label: 'Revenue ($)',
+                        label: 'Revenue (KES)',
                         data: data.values,
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.22)',
+                        borderColor: '#22c55e',
                         borderWidth: 1
                     }]
                 },
@@ -162,7 +202,7 @@
                     labels: data.labels,
                     datasets: [{
                         data: data.values,
-                        backgroundColor: ['#36a2eb', '#4bc0c0', '#ff6384', '#ffce56']
+                        backgroundColor: ['#2563eb', '#22c55e', '#ef4444', '#eab308', '#64748b']
                     }]
                 },
                 options: {
@@ -185,8 +225,8 @@
                     datasets: [{
                         label: 'Appointments',
                         data: data.values,
-                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                        borderColor: 'rgba(153, 102, 255, 1)',
+                        backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                        borderColor: '#2563eb',
                         borderWidth: 1
                     }]
                 },
@@ -214,7 +254,7 @@
                     labels: data.labels,
                     datasets: [{
                         data: data.counts,
-                        backgroundColor: ['#ff6384', '#36a2eb', '#4bc0c0', '#ffce56']
+                        backgroundColor: ['#ef4444', '#eab308', '#22c55e', '#64748b']
                     }]
                 },
                 options: {

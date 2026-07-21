@@ -181,6 +181,104 @@
             font-size: 0.75rem;
         }
 
+        /* Professional page shell */
+        .page-header {
+            align-items: flex-start;
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        .page-kicker {
+            color: #2563eb;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.35rem;
+            text-transform: uppercase;
+        }
+        .page-title {
+            color: #0f172a;
+            font-size: clamp(1.45rem, 2.3vw, 2rem);
+            font-weight: 800;
+            letter-spacing: 0;
+            margin: 0;
+        }
+        .page-subtitle {
+            color: #64748b;
+            margin: 0.35rem 0 0;
+            max-width: 760px;
+        }
+        .surface {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+            overflow: hidden;
+        }
+        .surface-header {
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+        }
+        .surface-title {
+            color: #0f172a;
+            font-size: 0.98rem;
+            font-weight: 800;
+            margin: 0;
+        }
+        .summary-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+            height: 100%;
+            padding: 1rem;
+        }
+        .summary-label {
+            color: #64748b;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .summary-value {
+            color: #0f172a;
+            font-size: 1.55rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-top: 0.4rem;
+        }
+        .summary-icon {
+            align-items: center;
+            border-radius: 8px;
+            display: inline-flex;
+            height: 40px;
+            justify-content: center;
+            width: 40px;
+        }
+        .empty-state {
+            color: #64748b;
+            padding: 2rem 1.25rem;
+            text-align: center;
+        }
+        .table .btn-group .btn,
+        .table form .btn {
+            align-items: center;
+            display: inline-flex;
+            justify-content: center;
+            min-height: 31px;
+        }
+        .amount-text {
+            color: #0f172a;
+            font-variant-numeric: tabular-nums;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
         /* Stats Cards */
         .stat-card {
             border-radius: 12px;
@@ -213,6 +311,11 @@
         /* Responsive */
         @media (max-width: 768px) {
             body { padding-top: 60px; }
+            .page-header,
+            .surface-header {
+                align-items: stretch;
+                flex-direction: column;
+            }
             .flash-container {
                 right: 10px;
                 left: 10px;
