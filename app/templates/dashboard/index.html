@@ -1,225 +1,432 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Kirwara Hospital Dashboard{% endblock %}
 
 {% block content %}
-<div class="mb-4">
-    <h1 class="display-6 fw-bold">
-        <i class="fas fa-tachometer-alt text-primary"></i> Welcome, {{ user.first_name }}!
-        <small class="text-muted fs-6">{{ today.strftime('%B %d, %Y') }}</small>
-    </h1>
-    <p class="text-muted">You are logged in as <strong>{{ roles|join(', ')|capitalize }}</strong></p>
-</div>
+<style>
+    .dashboard-hero {
+        background:
+            linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(29, 78, 216, 0.9)),
+            url("https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=1400&q=80");
+        background-position: center;
+        background-size: cover;
+        border-radius: 8px;
+        color: #ffffff;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+        padding: 1.5rem;
+    }
 
-<!-- Stats Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-md-3 col-6">
-        <div class="stat-card" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="stat-number">{{ total_patients|default(0) }}</div>
-                    <div class="stat-label">Patients</div>
-                </div>
-                <i class="fas fa-users"></i>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-6">
-        <div class="stat-card" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="stat-number">{{ total_appointments|default(0) }}</div>
-                    <div class="stat-label">Appointments</div>
-                </div>
-                <i class="fas fa-calendar-check"></i>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-6">
-        <div class="stat-card" style="background: linear-gradient(135deg, #eab308, #ca8a04);">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="stat-number">KES {{ total_revenue|default(0)|round(2) }}</div>
-                    <div class="stat-label">Revenue</div>
-                </div>
-                <i class="fas fa-dollar-sign"></i>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-6">
-        <div class="stat-card" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="stat-number">{{ unpaid_bills|default(0) }}</div>
-                    <div class="stat-label">Unpaid Bills</div>
-                </div>
-                <i class="fas fa-file-invoice"></i>
-            </div>
-        </div>
-    </div>
-</div>
+    .dashboard-hero h1 {
+        letter-spacing: 0;
+    }
 
-<!-- Quick Actions -->
-<div class="row g-3 mb-4">
-    <div class="col-12">
-        <h5 class="fw-bold"><i class="fas fa-bolt text-warning"></i> Quick Actions</h5>
-    </div>
-    
-    <!-- Admin & Receptionist Actions -->
-    {% if is_admin or is_receptionist %}
-    <div class="col-md-3 col-6">
-        <a href="{{ url_for('patient.new') }}" class="btn btn-primary w-100 py-3">
-            <i class="fas fa-user-plus"></i><br>Register Patient
-        </a>
-    </div>
-    <div class="col-md-3 col-6">
-        <a href="{{ url_for('appointment.new') }}" class="btn btn-success w-100 py-3">
-            <i class="fas fa-calendar-plus"></i><br>Book Appointment
-        </a>
-    </div>
-    {% endif %}
-    
-    <!-- Admin Only Actions -->
-    {% if is_admin %}
-    <div class="col-md-3 col-6">
-        <a href="{{ url_for('auth.register') }}" class="btn btn-warning w-100 py-3">
-            <i class="fas fa-user-cog"></i><br>Add Staff
-        </a>
-    </div>
-    {% endif %}
-    
-    <!-- Doctor Actions -->
-    {% if is_doctor %}
-    <div class="col-md-3 col-6">
-        <a href="{{ url_for('patient.index') }}" class="btn btn-info w-100 py-3">
-            <i class="fas fa-users"></i><br>View Patients
-        </a>
-    </div>
-    <div class="col-md-3 col-6">
-        <a href="{{ url_for('appointment.index') }}" class="btn btn-primary w-100 py-3">
-            <i class="fas fa-calendar-check"></i><br>My Appointments
-        </a>
-    </div>
-    {% endif %}
-</div>
+    .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
 
-<!-- Pending Appointments - Only for Doctors -->
+    .hero-pill {
+        align-items: center;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 8px;
+        display: inline-flex;
+        font-size: 0.9rem;
+        gap: 0.5rem;
+        padding: 0.55rem 0.8rem;
+    }
+
+    .metric-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+        height: 100%;
+        padding: 1.25rem;
+    }
+
+    .metric-icon {
+        align-items: center;
+        border-radius: 8px;
+        display: inline-flex;
+        height: 44px;
+        justify-content: center;
+        width: 44px;
+    }
+
+    .metric-value {
+        color: #0f172a;
+        font-size: clamp(1.45rem, 2vw, 2rem);
+        font-weight: 800;
+        line-height: 1.1;
+    }
+
+    .metric-label {
+        color: #64748b;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .section-title {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.9rem;
+    }
+
+    .section-title h2 {
+        color: #0f172a;
+        font-size: 1.05rem;
+        font-weight: 800;
+        margin: 0;
+    }
+
+    .action-card {
+        align-items: center;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        color: #0f172a;
+        display: flex;
+        gap: 0.9rem;
+        height: 100%;
+        min-height: 88px;
+        padding: 1rem;
+        text-decoration: none;
+        transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .action-card:hover {
+        border-color: #bfdbfe;
+        box-shadow: 0 14px 30px rgba(37, 99, 235, 0.12);
+        color: #0f172a;
+        transform: translateY(-2px);
+    }
+
+    .action-icon {
+        align-items: center;
+        border-radius: 8px;
+        display: inline-flex;
+        flex: 0 0 44px;
+        height: 44px;
+        justify-content: center;
+        width: 44px;
+    }
+
+    .content-panel {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .content-panel-header {
+        align-items: center;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem 1.25rem;
+    }
+
+    .content-panel-header h2 {
+        font-size: 1rem;
+        font-weight: 800;
+        margin: 0;
+    }
+
+    .empty-state {
+        color: #64748b;
+        padding: 2rem 1.25rem;
+        text-align: center;
+    }
+
+    .status-dot {
+        border-radius: 999px;
+        display: inline-block;
+        height: 0.55rem;
+        margin-right: 0.4rem;
+        width: 0.55rem;
+    }
+
+    @media (max-width: 575.98px) {
+        .dashboard-hero {
+            padding: 1.2rem;
+        }
+
+        .content-panel-header {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+    }
+</style>
+
+<section class="dashboard-hero">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-8">
+            <p class="fw-semibold mb-2 text-white-50">Kirwara Hospital Operations</p>
+            <h1 class="fw-bold mb-2">Welcome back, {{ user.first_name }}.</h1>
+            <p class="mb-0 text-white-50">
+                Monitor today&apos;s activity, manage patient flow, and keep clinical work moving from one dashboard.
+            </p>
+            <div class="hero-meta">
+                <span class="hero-pill">
+                    <i class="fas fa-calendar-day"></i> {{ today.strftime('%B %d, %Y') }}
+                </span>
+                <span class="hero-pill">
+                    <i class="fas fa-user-shield"></i> {{ roles|join(', ')|capitalize }}
+                </span>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="bg-white bg-opacity-10 border border-white border-opacity-10 rounded-2 p-3">
+                <div class="small text-white-50 mb-1">Priority Queue</div>
+                <div class="h3 fw-bold mb-1">{{ pending_appointments|length if pending_appointments is defined else 0 }}</div>
+                <div class="small text-white-50">Pending appointment reviews</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="metric-label">Patients</div>
+                <div class="metric-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+            <div class="metric-value">{{ total_patients|default(0) }}</div>
+            <div class="text-muted small mt-2">Registered patient records</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="metric-label">Appointments</div>
+                <div class="metric-icon bg-success bg-opacity-10 text-success">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+            </div>
+            <div class="metric-value">{{ total_appointments|default(0) }}</div>
+            <div class="text-muted small mt-2">Total scheduled visits</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="metric-label">Revenue</div>
+                <div class="metric-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="fas fa-coins"></i>
+                </div>
+            </div>
+            <div class="metric-value">KES {{ total_revenue|default(0)|round(2) }}</div>
+            <div class="text-muted small mt-2">Payments received</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="metric-label">Unpaid Bills</div>
+                <div class="metric-icon bg-danger bg-opacity-10 text-danger">
+                    <i class="fas fa-file-invoice"></i>
+                </div>
+            </div>
+            <div class="metric-value">{{ unpaid_bills|default(0) }}</div>
+            <div class="text-muted small mt-2">Accounts requiring follow-up</div>
+        </div>
+    </div>
+</section>
+
+<section class="mb-4">
+    <div class="section-title">
+        <h2><i class="fas fa-bolt text-warning me-2"></i> Quick Actions</h2>
+        <span class="text-muted small">Common tasks for your role</span>
+    </div>
+    <div class="row g-3">
+        {% if is_admin or is_receptionist %}
+        <div class="col-sm-6 col-xl-3">
+            <a href="{{ url_for('patient.new') }}" class="action-card">
+                <span class="action-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="fas fa-user-plus"></i>
+                </span>
+                <span>
+                    <span class="d-block fw-bold">Register Patient</span>
+                    <span class="text-muted small">Create a new patient profile</span>
+                </span>
+            </a>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <a href="{{ url_for('appointment.new') }}" class="action-card">
+                <span class="action-icon bg-success bg-opacity-10 text-success">
+                    <i class="fas fa-calendar-plus"></i>
+                </span>
+                <span>
+                    <span class="d-block fw-bold">Book Appointment</span>
+                    <span class="text-muted small">Schedule a patient visit</span>
+                </span>
+            </a>
+        </div>
+        {% endif %}
+
+        {% if is_admin %}
+        <div class="col-sm-6 col-xl-3">
+            <a href="{{ url_for('auth.register') }}" class="action-card">
+                <span class="action-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="fas fa-user-cog"></i>
+                </span>
+                <span>
+                    <span class="d-block fw-bold">Add Staff</span>
+                    <span class="text-muted small">Invite clinical or admin staff</span>
+                </span>
+            </a>
+        </div>
+        {% endif %}
+
+        {% if is_doctor %}
+        <div class="col-sm-6 col-xl-3">
+            <a href="{{ url_for('patient.index') }}" class="action-card">
+                <span class="action-icon bg-info bg-opacity-10 text-info">
+                    <i class="fas fa-users"></i>
+                </span>
+                <span>
+                    <span class="d-block fw-bold">View Patients</span>
+                    <span class="text-muted small">Open patient records</span>
+                </span>
+            </a>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <a href="{{ url_for('appointment.index') }}" class="action-card">
+                <span class="action-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="fas fa-calendar-check"></i>
+                </span>
+                <span>
+                    <span class="d-block fw-bold">My Appointments</span>
+                    <span class="text-muted small">Review your schedule</span>
+                </span>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
 {% if is_doctor %}
-<div class="row mt-4">
-    <div class="col-12">
-        <h4 class="fw-bold"><i class="fas fa-clock text-warning"></i> Pending Appointments</h4>
-        <p class="text-muted small">Review and confirm appointments from patients</p>
-    </div>
-    {% if pending_appointments %}
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Patient</th>
-                                <th>Date & Time</th>
-                                <th>Reason</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for appt in pending_appointments %}
-                            <tr>
-                                <td>
-                                    <strong>{{ appt.patient.user.first_name }} {{ appt.patient.user.last_name }}</strong><br>
-                                    <small class="text-muted">ID: #{{ appt.patient.id }}</small>
-                                </td>
-                                <td>{{ appt.appointment_date.strftime('%Y-%m-%d %H:%M') }}</td>
-                                <td>{{ appt.reason }}</td>
-                                <td>
-                                    <form action="{{ url_for('appointment.accept', id=appt.id) }}" method="POST" style="display:inline;">
-                                        <button type="submit" class="btn btn-sm btn-success">
-                                            <i class="fas fa-check"></i> Accept
-                                        </button>
-                                    </form>
-                                    <form action="{{ url_for('appointment.reject', id=appt.id) }}" method="POST" style="display:inline;">
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Reject this appointment?');">
-                                            <i class="fas fa-times"></i> Reject
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+<section class="mb-4">
+    <div class="content-panel">
+        <div class="content-panel-header">
+            <h2><i class="fas fa-clock text-warning me-2"></i> Pending Appointments</h2>
+            <span class="badge bg-warning text-dark">{{ pending_appointments|length }} pending</span>
         </div>
-    </div>
-    {% else %}
-    <div class="col-12">
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i> No pending appointments. Great job!
+        {% if pending_appointments %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Date &amp; Time</th>
+                        <th>Reason</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appt in pending_appointments %}
+                    <tr>
+                        <td>
+                            <strong>{{ appt.patient.user.first_name }} {{ appt.patient.user.last_name }}</strong><br>
+                            <small class="text-muted">Patient ID: #{{ appt.patient.id }}</small>
+                        </td>
+                        <td>{{ appt.appointment_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ appt.reason }}</td>
+                        <td class="text-end">
+                            <form action="{{ url_for('appointment.accept', id=appt.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="fas fa-check"></i> Accept
+                                </button>
+                            </form>
+                            <form action="{{ url_for('appointment.reject', id=appt.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Reject this appointment?');">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-circle-check text-success fa-2x mb-3"></i>
+            <div class="fw-semibold text-dark">No pending appointments</div>
+            <div>All patient requests have been reviewed.</div>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
-</div>
+</section>
 {% endif %}
 
-<!-- Recent Lists -->
-<div class="row g-3 mt-3">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-clock text-primary"></i> Recent Appointments
+<section class="row g-3">
+    <div class="col-lg-6">
+        <div class="content-panel">
+            <div class="content-panel-header">
+                <h2><i class="fas fa-clock text-primary me-2"></i> Recent Appointments</h2>
+                <a href="{{ url_for('appointment.index') }}" class="small text-decoration-none">View all</a>
             </div>
-            <div class="card-body p-0">
-                <div class="list-group list-group-flush">
-                    {% for appt in recent_appointments|default([]) %}
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>{{ appt.patient.user.first_name }} {{ appt.patient.user.last_name }}</strong>
-                            <span class="text-muted ms-2">with Dr. {{ appt.doctor.user.last_name }}</span>
-                            <br>
-                            <span class="badge 
-                                {% if appt.status == 'Pending' %}bg-warning
+            <div class="list-group list-group-flush">
+                {% for appt in recent_appointments|default([]) %}
+                <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between gap-2">
+                    <div>
+                        <strong>{{ appt.patient.user.first_name }} {{ appt.patient.user.last_name }}</strong>
+                        <span class="text-muted ms-sm-2">with Dr. {{ appt.doctor.user.last_name }}</span>
+                        <div class="mt-2">
+                            <span class="badge
+                                {% if appt.status == 'Pending' %}bg-warning text-dark
                                 {% elif appt.status == 'Accepted' %}bg-success
                                 {% elif appt.status == 'Rejected' %}bg-danger
                                 {% elif appt.status == 'Completed' %}bg-info
                                 {% elif appt.status == 'Cancelled' %}bg-secondary
                                 {% else %}bg-primary{% endif %}">
-                                {{ appt.status }}
+                                <span class="status-dot bg-white bg-opacity-75"></span>{{ appt.status }}
                             </span>
                         </div>
-                        <span class="text-muted small">{{ appt.appointment_date.strftime('%Y-%m-%d %H:%M') }}</span>
                     </div>
-                    {% else %}
-                    <div class="list-group-item text-muted text-center">No recent appointments</div>
-                    {% endfor %}
+                    <span class="text-muted small">{{ appt.appointment_date.strftime('%Y-%m-%d %H:%M') }}</span>
                 </div>
+                {% else %}
+                <div class="empty-state">No recent appointments to display.</div>
+                {% endfor %}
             </div>
         </div>
     </div>
 
-    <!-- Recent Medical Records - Role Restricted -->
     {% if recent_records is defined and recent_records %}
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-file-medical text-info"></i> Recent Medical Records
+    <div class="col-lg-6">
+        <div class="content-panel">
+            <div class="content-panel-header">
+                <h2><i class="fas fa-file-medical text-info me-2"></i> Recent Medical Records</h2>
+                <span class="text-muted small">{{ recent_records|length }} recent</span>
             </div>
-            <div class="card-body p-0">
-                <div class="list-group list-group-flush">
-                    {% for record in recent_records %}
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>{{ record.patient.user.first_name }} {{ record.patient.user.last_name }}</strong>
-                            <span class="text-muted ms-2">{{ record.diagnosis or 'No diagnosis' }}</span>
-                        </div>
-                        <span class="badge bg-secondary">{{ record.date.strftime('%Y-%m-%d') }}</span>
+            <div class="list-group list-group-flush">
+                {% for record in recent_records %}
+                <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between gap-2">
+                    <div>
+                        <strong>{{ record.patient.user.first_name }} {{ record.patient.user.last_name }}</strong>
+                        <div class="text-muted small">{{ record.diagnosis or 'No diagnosis recorded' }}</div>
                     </div>
-                    {% endfor %}
+                    <span class="badge bg-secondary align-self-sm-center">{{ record.date.strftime('%Y-%m-%d') }}</span>
                 </div>
+                {% endfor %}
             </div>
         </div>
     </div>
     {% endif %}
-</div>
+</section>
 {% endblock %}
