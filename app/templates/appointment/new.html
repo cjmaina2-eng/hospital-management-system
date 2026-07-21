@@ -83,8 +83,26 @@
                         <label for="reason" class="form-label fw-semibold">
                             <i class="fas fa-notes-medical text-primary"></i> Reason for Visit
                         </label>
-                        <textarea class="form-control" id="reason" name="reason" 
-                                  rows="3" placeholder="Describe your symptoms or reason for consultation" required></textarea>
+                        <select class="form-select form-select-lg" id="reason" name="reason" required>
+                            <option value="">-- Select appointment reason --</option>
+                            <option value="General Consultation">General Consultation</option>
+                            <option value="Follow-up Visit">Follow-up Visit</option>
+                            <option value="Emergency Consultation">Emergency Consultation</option>
+                            <option value="Lab Results Review">Lab Results Review</option>
+                            <option value="Prescription Refill">Prescription Refill</option>
+                            <option value="Vaccination">Vaccination</option>
+                            <option value="Maternity Care">Maternity Care</option>
+                            <option value="Pediatric Visit">Pediatric Visit</option>
+                            <option value="Dental Consultation">Dental Consultation</option>
+                            <option value="Chronic Condition Review">Chronic Condition Review</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3 d-none" id="otherReasonWrap">
+                        <label for="other_reason" class="form-label fw-semibold">Specify Reason</label>
+                        <textarea class="form-control" id="other_reason" name="other_reason"
+                                  rows="3" placeholder="Briefly describe the appointment reason"></textarea>
                     </div>
 
                     <!-- Availability Check Button -->
@@ -190,6 +208,18 @@
     document.getElementById('availabilityResult').innerHTML = '';
     document.getElementById('submitBtn').disabled = true;
 });
+
+    document.getElementById('reason').addEventListener('change', function() {
+        const otherWrap = document.getElementById('otherReasonWrap');
+        const otherReason = document.getElementById('other_reason');
+        const isOther = this.value === 'Other';
+
+        otherWrap.classList.toggle('d-none', !isOther);
+        otherReason.required = isOther;
+        if (!isOther) {
+            otherReason.value = '';
+        }
+    });
 
     // Check Availability
     document.getElementById('checkAvailabilityBtn').addEventListener('click', function() {

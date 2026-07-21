@@ -87,10 +87,17 @@ def new():
         appointment_date = request.form.get('appointment_date')
         appointment_time = request.form.get('appointment_time')
         reason = request.form.get('reason')
+        other_reason = request.form.get('other_reason')
 
         if not all([doctor_id, appointment_date, appointment_time, reason]):
             flash('All fields are required.', 'danger')
             return redirect(url_for('appointment.new'))
+
+        if reason == 'Other':
+            if not other_reason or not other_reason.strip():
+                flash('Please specify the appointment reason.', 'danger')
+                return redirect(url_for('appointment.new'))
+            reason = other_reason.strip()
 
         # Combine date and time
         try:
