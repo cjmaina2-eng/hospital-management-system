@@ -19,18 +19,17 @@ def seed_database():
                 db.session.add(role)
         db.session.commit()
 
-        # 2. Create admin
-        if not User.query.filter_by(email='admin@hospital.com').first():
+        # Create admin
+        if not User.query.filter_by(email='admin@kirwarahospital.com').first():
             admin = User(
-                email='admin@hospital.com',
-                first_name='Admin',
-                last_name='User',
+                email='admin@kirwarahospital.com',  # New email
+                first_name='Kirwara',
+                last_name='Admin',
                 is_active=True
             )
             admin.set_password('admin123')
             admin.roles.append(Role.query.filter_by(name='admin').first())
             db.session.add(admin)
-        db.session.commit()
 
         # 3. Create doctor
         if not User.query.filter_by(email='doctor@hospital.com').first():
@@ -172,7 +171,7 @@ def seed_database():
             db.session.add(med)        
 
         print("✅ Database seeded successfully!")
-        print("Admin: admin@hospital.com / admin123")
+        print("Admin: admin@kirwarahospital.com / admin123")
         print("Doctor: doctor@hospital.com / doctor123")
         print("Patient: patient@example.com / patient123")
         print("Lab Technician: lab@hospital.com / lab123")

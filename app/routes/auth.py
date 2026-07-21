@@ -84,59 +84,35 @@ def register():
 
 @bp.route('/send-code', methods=['POST'])
 def send_code():
-    from app import mail
-    from flask_mail import Message
-
-    email = request.form.get('email')
-    if not email:
-        flash('Email is required.', 'danger')
-        return redirect(url_for('auth.login'))
-
-    # Check if user exists
-    user = User.query.filter_by(email=email).first()
-    if not user:
-        flash('No account found with that email.', 'danger')
-        return redirect(url_for('auth.login'))
-
-    # Generate and store code
-    code = VerificationCode.create_for_email(email)
-
-    # --- SEND REAL EMAIL ---
+    # ... existing code ...
+    
     try:
         msg = Message(
-            subject="Your Login Code - MyHHub",
+            subject="Your Login Code - Kirwara Hospital",
             sender=current_app.config['MAIL_DEFAULT_SENDER'],
             recipients=[email],
-            body=f"""
-Dear {user.first_name or 'User'},
-
-You requested a one-time login code for MyHHub Hospital Management System.
-
-Your verification code is: {code}
-
-This code is valid for 10 minutes. If you did not request this, please ignore this email.
-
-Thank you,
-MyHHub Team
-            """,
             html=f"""
-<p>Dear <strong>{user.first_name or 'User'}</strong>,</p>
-<p>You requested a one-time login code for <strong>MyHHub</strong> Hospital Management System.</p>
-<h2 style="color: #2563eb; font-size: 28px; letter-spacing: 2px;">{code}</h2>
-<p>This code is valid for <strong>10 minutes</strong>. If you did not request this, please ignore this email.</p>
-<p>Thank you,<br>MyHHub Team</p>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                <div style="text-align: center; padding-bottom: 20px; border-bottom: 2px solid #2563eb;">
+                    <h2 style="color: #2563eb; margin: 0;">🏥 Kirwara Hospital</h2>
+                    <p style="color: #64748b; margin: 5px 0;">Quality Healthcare Services</p>
+                </div>
+                <div style="padding: 20px 0;">
+                    <p>Dear <strong>{user.first_name or 'User'}</strong>,</p>
+                    <p>You requested a one-time login code for the Kirwara Hospital Management System.</p>
+                    <div style="text-align: center; margin: 30px 0; padding: 20px; background: #f8fafc; border-radius: 8px;">
+                        <span style="font-size: 36px; letter-spacing: 8px; font-weight: bold; color: #2563eb;">{code}</span>
+                    </div>
+                    <p>This code is valid for <strong>10 minutes</strong>. If you did not request this, please ignore this email.</p>
+                </div>
+                <div style="padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 12px;">
+                    <p>Kirwara Hospital &bull; Quality Healthcare Services</p>
+                </div>
+            </div>
             """
         )
         mail.send(msg)
-        flash('A verification code has been sent to your email.', 'success')
-    except Exception as e:
-        current_app.logger.error(f"Email send failed: {e}")
-        flash(f'Email send failed. Your code is: {code} (demo mode)', 'warning')
-
-    # Store email in session for verification
-    session['login_code_email'] = email
-
-    return redirect(url_for('auth.login'))
+        # ... rest of code ...
 
 @bp.route('/verify-code', methods=['POST'])
 def verify_code():
@@ -179,57 +155,85 @@ def send_reset_email_async(app, msg):
 
 @bp.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
-    """Request password reset link."""
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard.index'))
+    # ... existing code ...
     
-    if request.method == 'POST':
-        email = request.form.get('email')
-        user = User.query.filter_by(email=email).first()
-        
-        if not user:
-            flash('No account found with that email address.', 'danger')
-            return redirect(url_for('auth.forgot_password'))
-        
-        # Generate reset token
-        token = secrets.token_urlsafe(32)
-        user.reset_token = token
-        user.reset_token_expires = datetime.utcnow() + timedelta(hours=1)
-        db.session.commit()
-        
-        # Build reset URL
-        reset_url = url_for('auth.reset_password', token=token, _external=True)
-        
-        # --- TRY TO SEND EMAIL ---
-        email_sent = False
-        try:
-            msg = Message(
-                subject="Password Reset - Hospital Management System",
-                sender=current_app.config['MAIL_DEFAULT_SENDER'],
-                recipients=[email],
-                html=f"""
-                <h2>Reset Your Password</h2>
-                <p>You requested to reset your password for the Hospital Management System.</p>
-                <p>Click the link below to reset your password (valid for 1 hour):</p>
-                <p><a href="{reset_url}" style="display:inline-block; padding:12px 24px; background:#2563eb; color:white; text-decoration:none; border-radius:8px;">Reset Password</a></p>
-                <p>If you did not request this, please ignore this email.</p>
-                <p>Thank you,<br>Hospital Management Team</p>
-                """
-            )
-            mail.send(msg)
-            email_sent = True
-            flash('Password reset link sent to your email. Please check your inbox.', 'success')
-        except Exception as e:
-            current_app.logger.error(f"Email error: {e}")
-            flash(f'Could not send email. Please contact support or use the link below.', 'warning')
-        
-        # --- FALLBACK: Show reset link directly in flash ---
-        if not email_sent:
-            flash(f'Reset link: {reset_url}', 'info')
-        
+    try:
+        msg = Message(
+            subject="Password Reset - Kirwara Hospital Management System",
+            sender=current_app.config['MAIL_DEFAULT_SENDER'],
+            recipients=[email],
+            html=f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                <div style="text-align: center; padding-bottom: 20px; border-bottom: 2px solid #2563eb;">
+                    <h2 style="color: #2563eb; margin: 0;">🏥 Kirwara Hospital</h2>
+                    <p style="color: #64748b; margin: 5px 0;">Quality Healthcare Services</p>
+                </div>
+                <div style="padding: 20px 0;">
+                    <h3 style="color: #0f172a;">Reset Your Password</h3>
+                    <p>You requested to reset your password for the Kirwara Hospital Management System.</p>
+                    <p>Click the button below to reset your password (valid for 1 hour):</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{reset_url}" style="display: inline-block; padding: 12px 32px; background: #2563eb; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
+                            Reset Password
+                        </a>
+                    </div>
+                    <p style="color: #64748b; font-size: 14px;">If you did not request this, please ignore this email.</p>
+                </div>
+                <div style="padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 12px;">
+                    <p>Kirwara Hospital &bull; Quality Healthcare Services</p>
+                    <p>© 2026 All Rights Reserved</p>
+                </div>
+            </div>
+            """
+        )
+        mail.send(msg)
+        # ... rest of code ...
+
+@bp.route('/send-code', methods=['POST'])
+def send_code():
+    from app import mail
+    from flask_mail import Message
+
+    email = request.form.get('email')
+    if not email:
+        flash('Email is required.', 'danger')
         return redirect(url_for('auth.login'))
-    
-    return render_template('auth/forgot_password.html')
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        flash('No account found with that email.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    code = VerificationCode.create_for_email(email)
+
+    # --- TRY TO SEND EMAIL ---
+    email_sent = False
+    try:
+        msg = Message(
+            subject="Your Login Code - MyHHub",
+            sender=current_app.config['MAIL_DEFAULT_SENDER'],
+            recipients=[email],
+            html=f"""
+            <p>Dear <strong>{user.first_name or 'User'}</strong>,</p>
+            <p>Your verification code is: <strong style="font-size: 24px; color: #2563eb;">{code}</strong></p>
+            <p>This code is valid for <strong>10 minutes</strong>.</p>
+            <p>Thank you,<br>MyHHub Team</p>
+            """
+        )
+        mail.send(msg)
+        email_sent = True
+        flash('A verification code has been sent to your email.', 'success')
+    except Exception as e:
+        current_app.logger.error(f"Email send failed: {e}")
+        flash(f'Could not send email. Your code is: {code}', 'warning')
+
+    # --- FALLBACK: Show code in flash ---
+    if not email_sent:
+        flash(f'Your verification code is: {code}', 'info')
+
+    session['login_code_email'] = email
+    return redirect(url_for('auth.login'))
+
 @bp.route('/reset-password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     """Reset password with token."""
