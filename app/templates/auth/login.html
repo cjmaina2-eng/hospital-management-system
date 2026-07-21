@@ -1,113 +1,95 @@
 {% extends "base.html" %}
 
-{% block title %}Forgot Password - Hospital Management System{% endblock %}
+{% block title %}Login - Hospital Management System{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-0">
-    <div class="row g-0 min-vh-100">
-        <!-- Left Column: Branding & Stats -->
-        <div class="col-lg-6 d-none d-lg-flex flex-column justify-content-center px-5"
-             style="background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); color: white; min-height: 100vh;">
-            
-            <!-- Logo / Brand -->
-            <div class="mb-4">
-                <div class="d-flex align-items-center mb-4">
-                    <div class="bg-primary rounded-3 p-3 me-3">
-                        <i class="fas fa-hospital-user fa-2x text-white"></i>
-                    </div>
-                    <div>
-                        <h2 class="fw-bold mb-0" style="letter-spacing: -0.5px;">Kirwara Hospital</h2>
-                        <p class="text-light opacity-75 small">Hospital Management System</p>
-                    </div>
-                </div>
-                <h1 class="display-5 fw-bold mb-3" style="line-height: 1.2;">
-                    Protect Yourself and Your Family —<br>
-                    <span class="text-primary">Easy Online Appointments</span>
-                </h1>
-            </div>
-
-            <!-- Stats -->
-            <div class="row g-4 mt-3">
-                <div class="col-6">
-                    <div class="bg-white bg-opacity-10 rounded-4 p-4 text-center">
-                        <div class="display-4 fw-bold text-primary">5.7M</div>
-                        <div class="text-light opacity-75">Doses Injected</div>
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="bg-white bg-opacity-10 rounded-4 p-4 text-center">
-                        <div class="display-4 fw-bold text-success">98%</div>
-                        <div class="text-light opacity-75">Recovery Rate</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-4">
-                <p class="text-light opacity-50 small">
-                    <i class="fas fa-shield-alt me-1"></i> HIPAA Compliant · 256-bit SSL Encryption
-                </p>
-            </div>
-        </div>
-
-        <!-- Right Column: Forgot Password Form -->
-        <div class="col-lg-6 d-flex align-items-center justify-content-center px-4 py-5"
-             style="background: #f8fafc; min-height: 100vh;">
-            
-            <div class="w-100" style="max-width: 440px;">
-                <!-- Mobile Logo -->
-                <div class="d-lg-none text-center mb-4">
-                    <div class="bg-primary rounded-3 p-3 d-inline-block mb-2">
-                        <i class="fas fa-hospital-user fa-2x text-white"></i>
-                    </div>
-                    <h3 class="fw-bold">MyHHub</h3>
-                    <p class="text-muted">Hospital Management System</p>
-                </div>
-
-                <!-- Welcome Message -->
-                <div class="mb-4 p-3 bg-white rounded-4 shadow-sm" style="border: 1px solid #e2e8f0;">
-                    <h3 class="fw-bold mb-0" style="color: #2563eb;">
-                        <i class="fas fa-lock me-2"></i>Forgot Password?
-                    </h3>
-                </div>
-
-                <!-- Forgot Password Form -->
-                <div class="bg-white rounded-4 shadow-lg p-4 p-md-5">
-                    <h4 class="fw-bold mb-1">Reset Your Password</h4>
-                    <p class="text-muted small mb-4">Enter your email to receive a reset link</p>
-
-                    <form method="POST">
-                        <div class="mb-3">
-                            <label for="email" class="form-label fw-semibold small text-secondary">
-                                <i class="fas fa-envelope me-1"></i> Email Address
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0">
-                                    <i class="fas fa-user text-muted"></i>
-                                </span>
-                                <input type="email" class="form-control form-control-lg border-0 bg-light"
-                                       id="email" name="email"
-                                       placeholder="Enter your registered email" required>
+<div class="row justify-content-center align-items-center min-vh-75">
+    <div class="col-lg-10 col-xl-9">
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card shadow-lg border-0 h-100">
+                    <div class="card-body p-4 p-lg-5">
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-primary rounded-3 p-3 me-3">
+                                    <i class="fas fa-hospital-user fa-2x text-white"></i>
+                                </div>
+                                <div>
+                                    <h2 class="fw-bold mb-0">MyHHub</h2>
+                                    <p class="text-muted mb-0">Hospital Management System</p>
+                                </div>
                             </div>
+                            <h4 class="fw-bold mb-1">Sign in</h4>
+                            <p class="text-muted">Use your staff account to continue.</p>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-lg w-100 rounded-4 py-3 fw-bold mb-3"
-                                style="background: #2563eb; border: none;">
-                            <i class="fas fa-paper-plane me-2"></i> Send Reset Link
-                        </button>
-                    </form>
+                        <form method="POST" action="{{ url_for('auth.login') }}">
+                            <div class="mb-3">
+                                <label for="email" class="form-label fw-semibold">
+                                    <i class="fas fa-envelope me-1"></i> Email Address
+                                </label>
+                                <input type="email" class="form-control form-control-lg"
+                                       id="email" name="email" autocomplete="email" required>
+                            </div>
 
-                    <div class="mt-3 text-center">
-                        <a href="{{ url_for('auth.login') }}" class="text-decoration-none small text-primary fw-semibold">
-                            <i class="fas fa-arrow-left me-1"></i> Back to Login
-                        </a>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <label for="password" class="form-label fw-semibold mb-0">
+                                        <i class="fas fa-lock me-1"></i> Password
+                                    </label>
+                                    <a href="{{ url_for('auth.forgot_password') }}" class="small text-decoration-none">
+                                        Forgot password?
+                                    </a>
+                                </div>
+                                <input type="password" class="form-control form-control-lg mt-2"
+                                       id="password" name="password" autocomplete="current-password" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-right-to-bracket me-2"></i> Login
+                            </button>
+                        </form>
                     </div>
+                </div>
+            </div>
 
-                    <!-- Security Note -->
-                    <div class="mt-4 p-3 bg-light rounded-4 text-center">
-                        <p class="small text-muted mb-0">
-                            <i class="fas fa-shield-alt text-success me-1"></i> 
-                            Your password is secure and encrypted
-                        </p>
+            <div class="col-lg-6">
+                <div class="card shadow-lg border-0 h-100">
+                    <div class="card-body p-4 p-lg-5">
+                        <div class="mb-4">
+                            <h4 class="fw-bold mb-1">
+                                <i class="fas fa-shield-halved text-primary me-2"></i> Login with code
+                            </h4>
+                            <p class="text-muted">Request a one-time code if password login is unavailable.</p>
+                        </div>
+
+                        <form method="POST" action="{{ url_for('auth.send_code') }}" class="mb-4">
+                            <div class="mb-3">
+                                <label for="code_email" class="form-label fw-semibold">Email Address</label>
+                                <input type="email" class="form-control form-control-lg"
+                                       id="code_email" name="email" autocomplete="email" required>
+                            </div>
+                            <button type="submit" class="btn btn-outline-primary btn-lg w-100">
+                                <i class="fas fa-paper-plane me-2"></i> Send Code
+                            </button>
+                        </form>
+
+                        {% if session.get('login_code_email') %}
+                        <hr>
+                        <form method="POST" action="{{ url_for('auth.verify_code') }}">
+                            <div class="mb-3">
+                                <label for="code" class="form-label fw-semibold">Verification Code</label>
+                                <input type="text" class="form-control form-control-lg"
+                                       id="code" name="code" inputmode="numeric" maxlength="6" required>
+                                <div class="form-text">
+                                    Code sent to {{ session.get('login_code_email') }}.
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-lg w-100">
+                                <i class="fas fa-check me-2"></i> Verify Code
+                            </button>
+                        </form>
+                        {% endif %}
                     </div>
                 </div>
             </div>
