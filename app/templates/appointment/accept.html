@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Accept Appointment & Assign Time{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="fas fa-check-circle"></i> Accept Appointment & Assign Time</h4>
+            </div>
+            <div class="card-body">
+                <!-- Appointment Details -->
+                <div class="alert alert-info">
+                    <p class="mb-1"><strong>Patient:</strong> {{ appointment.patient.user.first_name }} {{ appointment.patient.user.last_name }}</p>
+                    <p class="mb-1"><strong>Reason:</strong> {{ appointment.reason }}</p>
+                    <p class="mb-0"><strong>Requested Date:</strong> {{ appointment.appointment_date_requested.strftime('%B %d, %Y') }}</p>
+                </div>
+
+                <!-- Time Assignment Form -->
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="appointment_time" class="form-label fw-semibold">
+                            <i class="fas fa-clock text-primary"></i> Assign Appointment Time
+                        </label>
+                        <input type="time" class="form-control form-control-lg" 
+                               id="appointment_time" name="appointment_time" 
+                               min="08:00" max="18:00" step="1800" required>
+                        <small class="text-muted">Select a time between 8:00 AM and 6:00 PM</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <p class="text-muted small">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>Note:</strong> The patient will receive an email notification with the confirmed appointment time once you accept.
+                        </p>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-check-circle"></i> Accept & Confirm Appointment
+                        </button>
+                        <a href="{{ url_for('appointment.index') }}" class="btn btn-secondary btn-lg">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+
+                <!-- Time Selection Tips -->
+                <div class="alert alert-light mt-4 border">
+                    <h6><i class="fas fa-lightbulb text-warning"></i> Tips for Scheduling</h6>
+                    <ul class="small mb-0">
+                        <li>Allow 30 minutes to 1 hour per appointment</li>
+                        <li>Avoid consecutive appointments if possible</li>
+                        <li>Consider your other scheduled appointments</li>
+                        <li>Leave buffer time between sessions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Set current time as default
+    document.addEventListener('DOMContentLoaded', function() {
+        const timeInput = document.getElementById('appointment_time');
+        // Default to 09:00 AM
+        timeInput.value = '09:00';
+    });
+</script>
+{% endblock %}

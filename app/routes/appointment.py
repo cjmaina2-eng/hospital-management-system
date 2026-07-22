@@ -85,11 +85,10 @@ def new():
     if request.method == 'POST':
         doctor_id = request.form.get('doctor_id')
         appointment_date = request.form.get('appointment_date')
-        appointment_time = request.form.get('appointment_time')
         reason = request.form.get('reason')
         other_reason = request.form.get('other_reason')
 
-        if not all([doctor_id, appointment_date, appointment_time, reason]):
+        if not all([doctor_id, appointment_date, reason]):
             flash('All fields are required.', 'danger')
             return redirect(url_for('appointment.new'))
 
@@ -99,11 +98,11 @@ def new():
                 return redirect(url_for('appointment.new'))
             reason = other_reason.strip()
 
-        # Combine date and time
+        # Parse appointment date
         try:
-            dt = datetime.strptime(f"{appointment_date} {appointment_time}", '%Y-%m-%d %H:%M')
+            appt_date = datetime.strptime(appointment_date, '%Y-%m-%d').date()
         except ValueError:
-            flash('Invalid date or time format.', 'danger')
+            flash('Invalid date format.', 'danger')
             return redirect(url_for('appointment.new'))
 
         # If admin/receptionist, they must select a patient
@@ -117,33 +116,21 @@ def new():
                 flash('Patient not found.', 'danger')
                 return redirect(url_for('appointment.new'))
 
-        # Check doctor exists and is free
+        # Check doctor exists
         doctor = Doctor.query.get(doctor_id)
         if not doctor:
             flash('Doctor not found.', 'danger')
             return redirect(url_for('appointment.new'))
 
-        if doctor.status != 'free':
-            flash(f'Dr. {doctor.user.first_name} {doctor.user.last_name} is not available at the moment (status: {doctor.status}).', 'danger')
-            return redirect(url_for('appointment.new'))
-
-        # Check for conflicting appointments
-        conflict = Appointment.query.filter(
-            Appointment.doctor_id == doctor_id,
-            Appointment.appointment_date == dt,
-            Appointment.status.in_(['Pending', 'Accepted', 'Scheduled'])
-        ).first()
-        if conflict:
-            flash('This time slot is already booked. Please choose another.', 'danger')
-            return redirect(url_for('appointment.new'))
-
-        # Create appointment with PENDING status
+        # Create appointment with PENDING status (time to be assigned by doctor)
         appt = Appointment(
             patient_id=patient.id,
             doctor_id=doctor.id,
-            appointment_date=dt,
+            appointment_date_requested=appt_date,
+            appointment_date=None,  # Will be set when doctor accepts and assigns time
+            appointment_time=None,   # Will be set when doctor accepts and assigns time
             reason=reason,
-            status='Pending'  # <-- Doctor must accept/reject
+            status='Pending'  # <-- Doctor must accept/reject and assign time
         )
         db.session.add(appt)
         db.session.commit()
@@ -158,73 +145,52 @@ def new():
         patients = Patient.query.all()
 
     today = datetime.now().strftime('%Y-%m-%d')
-    now_time = datetime.now().strftime('%H:%M')
     return render_template('appointment/new.html',
                            doctors=doctors,
                            patients=patients,
                            patient=patient,
-                           today=today,
-                           now_time=now_time)
+                           today=today)
 
 @bp.route('/check_availability', methods=['GET'])
 @login_required
 def check_availability():
-    """JSON endpoint to check if a doctor is available."""
+    """JSON endpoint to check if a doctor is available on a date."""
     doctor_id = request.args.get('doctor_id')
     date = request.args.get('date')
-    time = request.args.get('time')
 
-    if not all([doctor_id, date, time]):
+    if not all([doctor_id, date]):
         return jsonify({'available': False, 'message': 'Missing parameters'}), 400
 
     try:
-        dt = datetime.strptime(f"{date} {time}", '%Y-%m-%d %H:%M')
+        appt_date = datetime.strptime(date, '%Y-%m-%d').date()
     except ValueError:
-        return jsonify({'available': False, 'message': 'Invalid date/time format'}), 400
+        return jsonify({'available': False, 'message': 'Invalid date format'}), 400
 
     doctor = Doctor.query.get(doctor_id)
     if not doctor:
         return jsonify({'available': False, 'message': 'Doctor not found'}), 404
 
-    # Check status
-    if doctor.status != 'free':
-        status_map = {
-            'in_session': 'currently in a consultation',
-            'on_leave': 'on leave',
-            'lunch_break': 'on lunch break',
-            'in_surgery': 'in surgery'
-        }
-        reason = status_map.get(doctor.status, 'unavailable')
+    # Check if date is today or in the past
+    today = datetime.now().date()
+    if appt_date < today:
         return jsonify({
             'available': False,
-            'message': f'Dr. {doctor.user.first_name} {doctor.user.last_name} is {reason}.'
+            'message': 'Cannot book appointments in the past.'
         })
 
-    # Check conflicting appointments (including pending ones)
+    # Check conflicting appointments for this date (only those with assigned times)
     existing = Appointment.query.filter(
         Appointment.doctor_id == doctor_id,
-        Appointment.appointment_date == dt,
-        Appointment.status.in_(['Pending', 'Accepted', 'Scheduled'])
-    ).first()
-    if existing:
-        return jsonify({
-            'available': False,
-            'message': f'Dr. {doctor.user.first_name} {doctor.user.last_name} is already booked at this time.'
-        })
-
-    # Working hours
-    hour = dt.hour
-    if hour < 8 or hour >= 18:
-        return jsonify({
-            'available': False,
-            'message': 'Please select a time between 8:00 AM and 6:00 PM.'
-        })
+        Appointment.appointment_date_requested == appt_date,
+        Appointment.status.in_(['Pending', 'Accepted'])
+    ).count()
 
     return jsonify({
         'available': True,
-        'message': f'Dr. {doctor.user.first_name} {doctor.user.last_name} is available!',
+        'message': f'Dr. {doctor.user.first_name} {doctor.user.last_name} is available on this date!',
         'doctor_name': f"Dr. {doctor.user.first_name} {doctor.user.last_name}",
-        'specialization': doctor.specialization
+        'specialization': doctor.specialization,
+        'pending_count': existing
     })
 
 @bp.route('/<int:id>')
@@ -250,10 +216,10 @@ def view(id):
 
     return render_template('appointment/view.html', appointment=appointment)
 
-@bp.route('/<int:id>/accept', methods=['POST'])
+@bp.route('/<int:id>/accept', methods=['GET', 'POST'])
 @login_required
 def accept(id):
-    """Doctor accepts a pending appointment."""
+    """Doctor accepts a pending appointment and assigns a time."""
     appointment = Appointment.query.get_or_404(id)
     
     # Only the assigned doctor can accept
@@ -266,10 +232,48 @@ def accept(id):
         flash('This appointment is no longer pending.', 'warning')
         return redirect(url_for('dashboard.index'))
     
+    # GET: Show form to select time
+    if request.method == 'GET':
+        return render_template('appointment/accept.html', appointment=appointment)
+    
+    # POST: Process time selection
+    appointment_time = request.form.get('appointment_time')
+    
+    if not appointment_time:
+        flash('Please select a time.', 'danger')
+        return render_template('appointment/accept.html', appointment=appointment)
+    
+    try:
+        # Combine date and time
+        dt = datetime.strptime(f"{appointment.appointment_date_requested} {appointment_time}", '%Y-%m-%d %H:%M')
+    except ValueError:
+        flash('Invalid time format.', 'danger')
+        return render_template('appointment/accept.html', appointment=appointment)
+    
+    # Validate working hours
+    hour = dt.hour
+    if hour < 8 or hour >= 18:
+        flash('Please select a time between 8:00 AM and 6:00 PM.', 'danger')
+        return render_template('appointment/accept.html', appointment=appointment)
+    
+    # Check for conflicting appointments at this time
+    conflict = Appointment.query.filter(
+        Appointment.doctor_id == appointment.doctor_id,
+        Appointment.appointment_date == dt,
+        Appointment.status.in_(['Accepted']),
+        Appointment.id != appointment.id
+    ).first()
+    if conflict:
+        flash('This time slot conflicts with another appointment. Please choose another time.', 'danger')
+        return render_template('appointment/accept.html', appointment=appointment)
+    
+    # Accept and assign time
+    appointment.appointment_date = dt
+    appointment.appointment_time = appointment_time
     appointment.status = 'Accepted'
     db.session.commit()
     queue_appointment_email(appointment, 'Accepted')
-    flash('Appointment accepted. The patient has been notified by email.', 'success')
+    flash('Appointment accepted and time assigned. The patient has been notified by email.', 'success')
     return redirect(request.referrer or url_for('dashboard.index'))
 
 @bp.route('/<int:id>/reject', methods=['POST'])
