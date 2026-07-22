@@ -257,7 +257,7 @@
                                         <span class="badge bg-primary ms-2">${doctor.department || 'General Medicine'}</span>
                                         <div class="text-muted small mt-1">
                                             ${doctor.specialization || ''}
-                                            {% if doctor.years_of_experience %} | ${doctor.years_of_experience} yrs exp{% endif %}
+                                            ${doctor.years_of_experience ? `| ${doctor.years_of_experience} yrs exp` : ''}
                                         </div>
                                     </div>
                                     ${statusBadgeMap[doctor.status] || '<span class="status-chip status-chip-muted">Unknown</span>'}
