@@ -3,12 +3,21 @@
 {% block title %}Book Appointment{% endblock %}
 
 {% block content %}
-<h1><i class="fas fa-calendar-plus text-primary"></i> Book Appointment</h1>
+<div class="page-header">
+    <div>
+        <div class="page-kicker">Scheduling</div>
+        <h1 class="page-title">Book Appointment</h1>
+        <p class="page-subtitle">Create a patient appointment request for doctor review and exact time assignment.</p>
+    </div>
+</div>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-body">
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="form-panel">
+            <div class="form-panel-header">
+                <h2 class="form-panel-title"><i class="fas fa-calendar-plus text-primary me-2"></i>Appointment Request</h2>
+            </div>
+            <div class="form-panel-body">
                 <form method="POST" id="appointmentForm">
                     <!-- Doctor Selection -->
                     <div class="mb-3">
@@ -23,16 +32,7 @@
                                     data-name="Dr. {{ doctor.user.first_name }} {{ doctor.user.last_name }}"
                                     data-status="{{ doctor.status }}">
                                 Dr. {{ doctor.user.first_name }} {{ doctor.user.last_name }} 
-                                ({{ doctor.specialization }}) 
-                                <span class="badge 
-                                    {% if doctor.status == 'free' %}bg-success
-                                    {% elif doctor.status == 'in_session' %}bg-primary
-                                    {% elif doctor.status == 'lunch_break' %}bg-warning
-                                    {% elif doctor.status == 'on_leave' %}bg-danger
-                                    {% elif doctor.status == 'in_surgery' %}bg-info
-                                    {% else %}bg-secondary{% endif %}">
-                                    {{ doctor.status|replace('_', ' ')|title }}
-                                </span>
+                                ({{ doctor.specialization }}) - {{ doctor.status|replace('_', ' ')|title }}
                             </option>
                             {% endfor %}
                         </select>
@@ -97,7 +97,7 @@
 
                     <!-- Availability Check Button -->
                     <div class="mb-3">
-                        <button type="button" class="btn btn-info btn-lg" id="checkAvailabilityBtn">
+                        <button type="button" class="btn btn-outline-primary btn-lg" id="checkAvailabilityBtn">
                             <i class="fas fa-search"></i> Check Date Availability
                         </button>
                         <div id="availabilityResult" class="mt-3"></div>

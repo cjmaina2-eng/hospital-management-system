@@ -6,6 +6,8 @@
 {% set paid_count = bills|selectattr('status', 'equalto', 'Paid')|list|length %}
 {% set partial_count = bills|selectattr('status', 'equalto', 'Partial')|list|length %}
 {% set unpaid_count = bills|selectattr('status', 'equalto', 'Unpaid')|list|length %}
+{% set invoice_total = bills|sum(attribute='total_amount') %}
+{% set paid_total = bills|sum(attribute='paid_amount') %}
 
 <div class="page-header">
     <div>
@@ -67,6 +69,30 @@
     </div>
 </div>
 
+<div class="insight-strip">
+    <div class="insight-card">
+        <span class="insight-card-icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-scale-balanced"></i></span>
+        <div>
+            <div class="insight-card-title">Invoice control</div>
+            <p class="insight-card-text">Total billed: <strong>KES {{ "%.2f"|format(invoice_total) }}</strong></p>
+        </div>
+    </div>
+    <div class="insight-card">
+        <span class="insight-card-icon bg-success bg-opacity-10 text-success"><i class="fas fa-money-bill-transfer"></i></span>
+        <div>
+            <div class="insight-card-title">Collections tracked</div>
+            <p class="insight-card-text">Paid to date: <strong>KES {{ "%.2f"|format(paid_total) }}</strong></p>
+        </div>
+    </div>
+    <div class="insight-card">
+        <span class="insight-card-icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-mobile-screen-button"></i></span>
+        <div>
+            <div class="insight-card-title">Digital payment ready</div>
+            <p class="insight-card-text">Billing records support patient payment actions and M-Pesa receipt tracking.</p>
+        </div>
+    </div>
+</div>
+
 <div class="surface">
     <div class="surface-header">
         <h2 class="surface-title"><i class="fas fa-receipt text-primary me-2"></i>Invoice Register</h2>
@@ -99,7 +125,7 @@
                     <td class="amount-text text-success">KES {{ "%.2f"|format(bill.paid_amount) }}</td>
                     <td class="amount-text">KES {{ "%.2f"|format(bill.total_amount - bill.paid_amount) }}</td>
                     <td>
-                        <span class="badge {% if bill.status == 'Paid' %}bg-success{% elif bill.status == 'Partial' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                        <span class="status-chip {% if bill.status == 'Paid' %}status-chip-success{% elif bill.status == 'Partial' %}status-chip-warning{% elif bill.status == 'Cancelled' %}status-chip-muted{% else %}status-chip-danger{% endif %}">
                             {{ bill.status }}
                         </span>
                     </td>

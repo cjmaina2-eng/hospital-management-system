@@ -67,6 +67,30 @@
     </div>
 </div>
 
+<div class="insight-strip">
+    <div class="insight-card">
+        <span class="insight-card-icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-hourglass-start"></i></span>
+        <div>
+            <div class="insight-card-title">Specimen intake</div>
+            <p class="insight-card-text">{{ ordered_count }} ordered tests are waiting for lab processing.</p>
+        </div>
+    </div>
+    <div class="insight-card">
+        <span class="insight-card-icon bg-info bg-opacity-10 text-info"><i class="fas fa-vial-circle-check"></i></span>
+        <div>
+            <div class="insight-card-title">Result workflow</div>
+            <p class="insight-card-text">{{ in_progress_count }} tests are in progress and ready for technician updates.</p>
+        </div>
+    </div>
+    <div class="insight-card">
+        <span class="insight-card-icon bg-success bg-opacity-10 text-success"><i class="fas fa-file-medical"></i></span>
+        <div>
+            <div class="insight-card-title">Clinical reporting</div>
+            <p class="insight-card-text">Completed results are available to doctors and connected patient records.</p>
+        </div>
+    </div>
+</div>
+
 <div class="surface">
     <div class="surface-header">
         <h2 class="surface-title"><i class="fas fa-microscope text-primary me-2"></i>Test Queue</h2>
@@ -101,7 +125,7 @@
                             <div class="text-muted small">{{ test.ordered_date.strftime('%H:%M') }}</div>
                         </td>
                         <td>
-                            <span class="badge {% if test.status == 'Ordered' %}bg-warning text-dark{% elif test.status == 'In-Progress' %}bg-info{% elif test.status == 'Completed' %}bg-success{% else %}bg-danger{% endif %}">
+                            <span class="status-chip {% if test.status == 'Ordered' %}status-chip-warning{% elif test.status == 'In-Progress' %}status-chip-info{% elif test.status == 'Completed' %}status-chip-success{% else %}status-chip-danger{% endif %}">
                                 {{ test.status }}
                             </span>
                         </td>

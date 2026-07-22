@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template
 from flask_login import login_required, current_user
 from app import db
-from app.models import Patient, Appointment, MedicalRecord, Bill, Doctor
+from app.models import Patient, Appointment, MedicalRecord, Bill, Doctor, LabTest
 from sqlalchemy import func
 from datetime import datetime
 
@@ -15,7 +15,15 @@ def index():
     total_patients = Patient.query.count()
     total_appointments = Appointment.query.count()
     total_revenue = db.session.query(func.sum(Bill.paid_amount)).scalar() or 0.0
+    outstanding_balance = db.session.query(func.sum(Bill.total_amount - Bill.paid_amount)).filter(
+        Bill.status.in_(['Unpaid', 'Partial'])
+    ).scalar() or 0.0
     unpaid_bills = Bill.query.filter_by(status='Unpaid').count()
+    admitted_patients = Patient.query.filter_by(is_admitted=True).count()
+    pending_lab_tests = LabTest.query.filter(LabTest.status.in_(['Ordered', 'In-Progress'])).count()
+    pending_appointment_count = Appointment.query.filter_by(status='Pending').count()
+    accepted_appointment_count = Appointment.query.filter_by(status='Accepted').count()
+    completed_appointment_count = Appointment.query.filter_by(status='Completed').count()
 
     recent_appointments = Appointment.query.order_by(
         Appointment.appointment_date_requested.desc(),
@@ -63,7 +71,13 @@ def index():
         'total_patients': total_patients,
         'total_appointments': total_appointments,
         'total_revenue': total_revenue,
+        'outstanding_balance': outstanding_balance,
         'unpaid_bills': unpaid_bills,
+        'admitted_patients': admitted_patients,
+        'pending_lab_tests': pending_lab_tests,
+        'pending_appointment_count': pending_appointment_count,
+        'accepted_appointment_count': accepted_appointment_count,
+        'completed_appointment_count': completed_appointment_count,
         'recent_appointments': recent_appointments,
         'recent_records': recent_records,
         'pending_appointments': pending_appointments,

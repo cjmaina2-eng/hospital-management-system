@@ -130,12 +130,15 @@ def seed_database():
         doctor = Doctor.query.first()
         if patient and doctor:
             if not Appointment.query.filter_by(patient_id=patient.id, doctor_id=doctor.id).first():
+                appointment_datetime = datetime.now() + timedelta(days=2, hours=10)
                 appt = Appointment(
                     patient_id=patient.id,
                     doctor_id=doctor.id,
-                    appointment_date=datetime.now() + timedelta(days=2, hours=10),
+                    appointment_date=appointment_datetime,
+                    appointment_date_requested=appointment_datetime.date(),
+                    appointment_time=appointment_datetime.strftime('%H:%M'),
                     reason='Routine checkup',
-                    status='Scheduled'
+                    status='Accepted'
                 )
                 db.session.add(appt)
                 db.session.commit()

@@ -13,15 +13,19 @@
     
     <style>
         :root {
-            --primary-color: #2563eb;
-            --primary-dark: #1d4ed8;
+            --primary-color: #1d4ed8;
+            --primary-dark: #1e40af;
+            --accent-color: #0f766e;
             --secondary-color: #64748b;
-            --success-color: #22c55e;
-            --warning-color: #eab308;
-            --danger-color: #ef4444;
-            --bg-light: #f1f5f9;
-            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --success-color: #16a34a;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+            --ink-color: #0f172a;
+            --muted-color: #64748b;
+            --line-color: #dbe3ef;
+            --bg-light: #eef3f8;
+            --card-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+            --card-hover-shadow: 0 16px 34px rgba(15, 23, 42, 0.12);
         }
 
         * {
@@ -29,31 +33,37 @@
         }
 
         body {
-            background-color: var(--bg-light);
-            padding-top: 65px;
+            background:
+                radial-gradient(circle at top left, rgba(29, 78, 216, 0.08), transparent 32rem),
+                linear-gradient(180deg, #f8fafc 0%, var(--bg-light) 100%);
+            color: var(--ink-color);
+            padding-top: 74px;
             min-height: 100vh;
         }
 
         /* Navbar */
         .navbar {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            padding: 0.75rem 0;
+            background: rgba(15, 23, 42, 0.96) !important;
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+            padding: 0.7rem 0;
         }
         .navbar-brand {
             font-weight: 700;
-            font-size: 1.3rem;
-            letter-spacing: -0.5px;
+            font-size: 1.05rem;
+            letter-spacing: 0;
             color: #fff !important;
         }
         .navbar-brand i {
-            color: #60a5fa;
+            color: #67e8f9;
             margin-right: 8px;
         }
         .navbar-dark .nav-link {
-            color: rgba(255, 255, 255, 0.8) !important;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
+            color: rgba(226, 232, 240, 0.82) !important;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.52rem 0.75rem;
             border-radius: 8px;
             transition: all 0.2s;
         }
@@ -62,14 +72,24 @@
             color: #fff !important;
         }
         .navbar-dark .nav-link.active {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(14, 165, 233, 0.16);
             color: #fff !important;
+        }
+        .dropdown-menu {
+            border: 1px solid var(--line-color);
+            border-radius: 8px;
+            box-shadow: var(--card-hover-shadow);
+        }
+        .dropdown-item {
+            font-size: 0.92rem;
+            font-weight: 600;
+            padding: 0.6rem 1rem;
         }
 
         /* Cards */
         .card {
-            border: none;
-            border-radius: 12px;
+            border: 1px solid var(--line-color);
+            border-radius: 8px;
             box-shadow: var(--card-shadow);
             transition: all 0.3s ease;
             overflow: hidden;
@@ -80,7 +100,7 @@
         }
         .card-header {
             background: transparent;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--line-color);
             padding: 1rem 1.25rem;
             font-weight: 600;
         }
@@ -92,11 +112,11 @@
         }
         .table thead th {
             background: #f8fafc;
-            border-bottom: 2px solid #e2e8f0;
-            font-weight: 600;
+            border-bottom: 1px solid var(--line-color);
+            font-weight: 800;
             font-size: 0.85rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.03em;
             color: #475569;
             padding: 0.75rem 1rem;
         }
@@ -114,7 +134,7 @@
         /* Buttons */
         .btn {
             border-radius: 8px;
-            font-weight: 500;
+            font-weight: 700;
             padding: 0.5rem 1.25rem;
             transition: all 0.2s;
         }
@@ -175,7 +195,7 @@
 
         /* Badges */
         .badge {
-            font-weight: 500;
+            font-weight: 700;
             padding: 0.35rem 0.75rem;
             border-radius: 50px;
             font-size: 0.75rem;
@@ -190,7 +210,7 @@
             margin-bottom: 1.5rem;
         }
         .page-kicker {
-            color: #2563eb;
+            color: var(--accent-color);
             font-size: 0.78rem;
             font-weight: 800;
             letter-spacing: 0.08em;
@@ -211,14 +231,15 @@
         }
         .surface {
             background: #ffffff;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--line-color);
             border-radius: 8px;
             box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
             overflow: hidden;
         }
         .surface-header {
             align-items: center;
-            border-bottom: 1px solid #e2e8f0;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            border-bottom: 1px solid var(--line-color);
             display: flex;
             gap: 1rem;
             justify-content: space-between;
@@ -232,14 +253,14 @@
         }
         .summary-card {
             background: #ffffff;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--line-color);
             border-radius: 8px;
             box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
             height: 100%;
             padding: 1rem;
         }
         .summary-label {
-            color: #64748b;
+            color: var(--muted-color);
             font-size: 0.78rem;
             font-weight: 800;
             letter-spacing: 0.06em;
@@ -278,6 +299,141 @@
             font-weight: 700;
             white-space: nowrap;
         }
+        .insight-strip {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin-bottom: 1.5rem;
+        }
+        .insight-card {
+            align-items: flex-start;
+            background: #ffffff;
+            border: 1px solid var(--line-color);
+            border-radius: 8px;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+            display: flex;
+            gap: 0.85rem;
+            padding: 1rem;
+        }
+        .insight-card-icon {
+            align-items: center;
+            border-radius: 8px;
+            display: inline-flex;
+            flex: 0 0 42px;
+            height: 42px;
+            justify-content: center;
+            width: 42px;
+        }
+        .insight-card-title {
+            color: #0f172a;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 0.2rem;
+        }
+        .insight-card-text {
+            color: #64748b;
+            font-size: 0.85rem;
+            margin: 0;
+        }
+        .record-meta {
+            color: #64748b;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .form-panel {
+            background: #ffffff;
+            border: 1px solid var(--line-color);
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+        .form-panel-header {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            border-bottom: 1px solid var(--line-color);
+            padding: 1rem 1.25rem;
+        }
+        .form-panel-title {
+            color: #0f172a;
+            font-size: 1rem;
+            font-weight: 800;
+            margin: 0;
+        }
+        .form-panel-body {
+            padding: 1.25rem;
+        }
+        .form-section-title {
+            align-items: center;
+            color: #0f172a;
+            display: flex;
+            font-size: 0.9rem;
+            font-weight: 800;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .form-control,
+        .form-select {
+            border-color: #dbe3ef;
+            border-radius: 8px;
+        }
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(29, 78, 216, 0.13);
+        }
+        .status-chip {
+            align-items: center;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            display: inline-flex;
+            font-size: 0.78rem;
+            font-weight: 800;
+            gap: 0.4rem;
+            padding: 0.35rem 0.7rem;
+            white-space: nowrap;
+        }
+        .status-chip::before {
+            border-radius: 999px;
+            content: "";
+            height: 0.5rem;
+            width: 0.5rem;
+        }
+        .status-chip-success {
+            background: #f0fdf4;
+            color: #166534;
+        }
+        .status-chip-success::before {
+            background: #22c55e;
+        }
+        .status-chip-warning {
+            background: #fffbeb;
+            color: #92400e;
+        }
+        .status-chip-warning::before {
+            background: #f59e0b;
+        }
+        .status-chip-danger {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+        .status-chip-danger::before {
+            background: #ef4444;
+        }
+        .status-chip-info {
+            background: #ecfeff;
+            color: #155e75;
+        }
+        .status-chip-info::before {
+            background: #06b6d4;
+        }
+        .status-chip-muted {
+            background: #f8fafc;
+            color: #475569;
+        }
+        .status-chip-muted::before {
+            background: #94a3b8;
+        }
 
         /* Stats Cards */
         .stat-card {
@@ -301,9 +457,9 @@
         /* Footer */
         .footer {
             margin-top: 3rem;
-            padding: 1.5rem 0;
-            background: white;
-            border-top: 1px solid #e2e8f0;
+            padding: 1.25rem 0;
+            background: rgba(255, 255, 255, 0.75);
+            border-top: 1px solid var(--line-color);
             color: #64748b;
             font-size: 0.9rem;
         }
@@ -320,6 +476,9 @@
                 right: 10px;
                 left: 10px;
                 max-width: none;
+            }
+            .insight-strip {
+                grid-template-columns: 1fr;
             }
             .stat-card .stat-number {
                 font-size: 1.5rem;
@@ -361,8 +520,8 @@
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-dark fixed-top">
-        <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container-fluid px-3 px-lg-4">
             <a class="navbar-brand" href="{{ url_for('dashboard.index') if current_user.is_authenticated else url_for('auth.login') }}">
                 <i class="fas fa-hospital"></i> Kirwara Hospital
             </a>
@@ -374,14 +533,14 @@
                     {% if current_user.is_authenticated %}
                         <!-- Dashboard -->
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('dashboard.index') }}">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('dashboard.') %}active{% endif %}" href="{{ url_for('dashboard.index') }}">
                                 <i class="fas fa-home"></i> Dashboard
                             </a>
                         </li>
                         <!-- Patients -->
                         {% if current_user.has_role('admin') or current_user.has_role('doctor') or current_user.has_role('receptionist') %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('patient.index') }}">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('patient.') %}active{% endif %}" href="{{ url_for('patient.index') }}">
                                 <i class="fas fa-users"></i> Patients
                             </a>
                         </li>
@@ -389,7 +548,7 @@
                         <!-- Appointments -->
                         {% if current_user.has_role('patient') or current_user.has_role('doctor') or current_user.has_role('admin') or current_user.has_role('receptionist') %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('appointment.index') }}">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('appointment.') %}active{% endif %}" href="{{ url_for('appointment.index') }}">
                                 <i class="fas fa-calendar-check"></i> Appointments
                             </a>
                         </li>
@@ -397,7 +556,7 @@
                         <!-- Billing -->
                         {% if current_user.has_role('admin') or current_user.has_role('receptionist') or current_user.has_role('doctor') or current_user.has_role('patient') %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('billing.index') }}">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('billing.') %}active{% endif %}" href="{{ url_for('billing.index') }}">
                                 <i class="fas fa-file-invoice-dollar"></i> Billing
                             </a>
                         </li>
@@ -405,7 +564,7 @@
                         <!-- Reports -->
                         {% if current_user.has_role('admin') or current_user.has_role('receptionist') or current_user.has_role('doctor') %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('report.dashboard') }}">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('report.') %}active{% endif %}" href="{{ url_for('report.dashboard') }}">
                                 <i class="fas fa-chart-pie"></i> Reports
                             </a>
                         </li>
@@ -413,21 +572,21 @@
                         <!-- Lab -->
                         {% if current_user.has_role('doctor') or current_user.has_role('lab_technician') or current_user.has_role('admin') %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('lab.index') }}">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('lab.') %}active{% endif %}" href="{{ url_for('lab.index') }}">
                                 <i class="fas fa-flask"></i> Lab
                             </a>
                         </li>
                         {% endif %}
                         {% if current_user.has_role('doctor') %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('doctor.status') }}">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('doctor.') %}active{% endif %}" href="{{ url_for('doctor.status') }}">
                                 <i class="fas fa-user-md"></i> My Status
                             </a>
                         </li>
                         {% endif %}
                         {% if current_user.has_role('receptionist') or current_user.has_role('admin') %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('billing.pending') }}">
+                            <a class="nav-link {% if request.endpoint == 'billing.pending' %}active{% endif %}" href="{{ url_for('billing.pending') }}">
                                 <i class="fas fa-clock text-warning"></i> Pending Bills
                                 <!-- Optional: badge with count -->
                             </a>
@@ -481,20 +640,21 @@
     </div>
 
     <!-- Main Content -->
-    <div class="container py-3">
+    <div class="container-fluid px-3 px-lg-4 py-3">
         {% block content %}{% endblock %}
     </div>
 
     <!-- Footer -->
-    <!-- <div class="footer text-center">
-        <div class="container">
+    <div class="footer">
+        <div class="container-fluid px-3 px-lg-4 d-flex flex-column flex-md-row justify-content-between gap-2">
             <p class="mb-0">
-                <i class="fas fa-copyright"></i> 2026 Hospital Management System &mdash; 
-                <span class="text-muted">Built with <i class="fas fa-heart text-danger"></i> for ZETECH University</span>
+                <i class="fas fa-shield-halved text-success"></i> Kirwara Hospital Management System
+            </p>
+            <p class="mb-0">
+                <span class="text-muted">Secure patient operations, billing, lab, and reporting workspace.</span>
             </p>
         </div>
     </div>
--->
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     

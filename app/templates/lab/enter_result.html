@@ -3,35 +3,58 @@
 {% block title %}Enter Lab Result{% endblock %}
 
 {% block content %}
-<h1><i class="fas fa-edit text-success"></i> Enter Result</h1>
-<p class="text-muted">
-    <strong>Test:</strong> {{ test.test_name }}<br>
-    <strong>Patient:</strong> {{ test.patient.user.first_name }} {{ test.patient.user.last_name }}<br>
-    <strong>Ordered by:</strong> Dr. {{ test.doctor.user.first_name }} {{ test.doctor.user.last_name }}
-</p>
+<div class="page-header">
+    <div>
+        <div class="page-kicker">Diagnostics</div>
+        <h1 class="page-title">Enter Lab Result</h1>
+        <p class="page-subtitle">Record findings for {{ test.test_name }} and update the diagnostic status for clinical review.</p>
+    </div>
+    <span class="status-chip {% if test.status == 'Ordered' %}status-chip-warning{% elif test.status == 'In-Progress' %}status-chip-info{% elif test.status == 'Completed' %}status-chip-success{% else %}status-chip-muted{% endif %}">
+        {{ test.status }}
+    </span>
+</div>
 
-<div class="card">
-    <div class="card-body">
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="insight-card h-100">
+            <span class="insight-card-icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-vial"></i></span>
+            <div>
+                <div class="insight-card-title">{{ test.test_name }}</div>
+                <p class="insight-card-text mb-2">Patient: {{ test.patient.user.first_name }} {{ test.patient.user.last_name }}</p>
+                <p class="insight-card-text mb-0">Ordered by: Dr. {{ test.doctor.user.first_name }} {{ test.doctor.user.last_name }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="form-panel">
+            <div class="form-panel-header">
+                <h2 class="form-panel-title"><i class="fas fa-file-medical text-success me-2"></i>Result Entry</h2>
+            </div>
+            <div class="form-panel-body">
         <form method="POST">
             <div class="mb-3">
-                <label for="result" class="form-label">Result</label>
-                <textarea class="form-control" id="result" name="result" rows="4" required></textarea>
+                <label for="result" class="form-label fw-semibold">Result</label>
+                <textarea class="form-control" id="result" name="result" rows="6" placeholder="Enter verified lab findings, values, interpretation, or clinical result notes" required></textarea>
             </div>
             <div class="mb-3">
-                <label for="notes" class="form-label">Technician Notes</label>
-                <textarea class="form-control" id="notes" name="notes" rows="2"></textarea>
+                <label for="notes" class="form-label fw-semibold">Technician Notes</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Optional internal notes, specimen quality, or follow-up recommendations"></textarea>
             </div>
             <div class="mb-3">
-                <label for="status" class="form-label">Status</label>
+                <label for="status" class="form-label fw-semibold">Status</label>
                 <select class="form-select" id="status" name="status">
                     <option value="Completed">Completed</option>
                     <option value="In-Progress">In-Progress</option>
                     <option value="Cancelled">Cancelled</option>
                 </select>
             </div>
-            <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Save Result</button>
-            <a href="{{ url_for('lab.view', test_id=test.id) }}" class="btn btn-secondary">Cancel</a>
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('lab.view', test_id=test.id) }}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Save Result</button>
+            </div>
         </form>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

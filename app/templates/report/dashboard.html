@@ -13,13 +13,19 @@
         height: 240px;
         position: relative;
     }
+
+    .report-note {
+        color: #64748b;
+        font-size: 0.85rem;
+        margin-top: 0.65rem;
+    }
 </style>
 
 <div class="page-header">
     <div>
         <div class="page-kicker">Analytics</div>
         <h1 class="page-title">Reports Dashboard</h1>
-        <p class="page-subtitle">Use operational trends to understand patient volume, revenue, appointments, and workload.</p>
+        <p class="page-subtitle">Use operational trends to understand patient volume, revenue, appointments, workload, and financial exposure.</p>
     </div>
 </div>
 
@@ -70,6 +76,30 @@
     </div>
 </div>
 
+<div class="insight-strip">
+    <div class="insight-card">
+        <span class="insight-card-icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-chart-simple"></i></span>
+        <div>
+            <div class="insight-card-title">Executive view</div>
+            <p class="insight-card-text">Summary cards update from live reporting endpoints for a panel-friendly operations snapshot.</p>
+        </div>
+    </div>
+    <div class="insight-card">
+        <span class="insight-card-icon bg-success bg-opacity-10 text-success"><i class="fas fa-user-doctor"></i></span>
+        <div>
+            <div class="insight-card-title">Clinical workload</div>
+            <p class="insight-card-text">Appointment trends and doctor workload help show real clinical queue management.</p>
+        </div>
+    </div>
+    <div class="insight-card">
+        <span class="insight-card-icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-receipt"></i></span>
+        <div>
+            <div class="insight-card-title">Revenue oversight</div>
+            <p class="insight-card-text">Billing charts separate paid revenue from invoice status for finance review.</p>
+        </div>
+    </div>
+</div>
+
 <div class="row g-3">
     <div class="col-lg-6">
         <div class="surface mb-3">
@@ -79,6 +109,7 @@
             </div>
             <div class="p-3 chart-box">
                 <canvas id="visitsChart"></canvas>
+                <div class="report-note">Shows scheduled clinical activity for the selected reporting window.</div>
             </div>
         </div>
     </div>
@@ -90,6 +121,7 @@
             </div>
             <div class="p-3 chart-box">
                 <canvas id="revenueChart"></canvas>
+                <div class="report-note">Tracks collected payments by billing date.</div>
             </div>
         </div>
     </div>
@@ -129,6 +161,10 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+    Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+    Chart.defaults.color = '#475569';
+    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+
     // Fetch and update summary cards
     fetch('/reports/api/summary')
         .then(response => response.json())
@@ -160,7 +196,25 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#eef2f7'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
                 }
             });
         })
@@ -185,7 +239,25 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#eef2f7'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
                 }
             });
         })

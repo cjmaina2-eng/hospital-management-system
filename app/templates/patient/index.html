@@ -3,6 +3,9 @@
 {% block title %}Patients{% endblock %}
 
 {% block content %}
+{% set admitted_count = patients|selectattr('is_admitted')|list|length %}
+{% set active_count = patients|selectattr('status', 'equalto', 'Active')|list|length %}
+
 <div class="page-header">
     <div>
         <div class="page-kicker">Patient Registry</div>
@@ -32,11 +35,57 @@
         <div class="summary-card">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="summary-label">With Blood Type</div>
+                    <div class="summary-label">Active Records</div>
+                    <div class="summary-value">{{ active_count }}</div>
+                </div>
+                <span class="summary-icon bg-success bg-opacity-10 text-success"><i class="fas fa-circle-check"></i></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="summary-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="summary-label">Admitted</div>
+                    <div class="summary-value">{{ admitted_count }}</div>
+                </div>
+                <span class="summary-icon bg-info bg-opacity-10 text-info"><i class="fas fa-bed-pulse"></i></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="summary-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="summary-label">Blood Type Set</div>
                     <div class="summary-value">{{ patients|selectattr('blood_type')|list|length }}</div>
                 </div>
                 <span class="summary-icon bg-danger bg-opacity-10 text-danger"><i class="fas fa-droplet"></i></span>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="insight-strip">
+    <div class="insight-card">
+        <span class="insight-card-icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-id-card-clip"></i></span>
+        <div>
+            <div class="insight-card-title">Verified patient identity</div>
+            <p class="insight-card-text">Each record tracks national ID, contacts, emergency details, and clinical identifiers.</p>
+        </div>
+    </div>
+    <div class="insight-card">
+        <span class="insight-card-icon bg-success bg-opacity-10 text-success"><i class="fas fa-notes-medical"></i></span>
+        <div>
+            <div class="insight-card-title">Clinical continuity</div>
+            <p class="insight-card-text">Patient profiles connect appointments, medical records, lab requests, and billing history.</p>
+        </div>
+    </div>
+    <div class="insight-card">
+        <span class="insight-card-icon bg-info bg-opacity-10 text-info"><i class="fas fa-bed"></i></span>
+        <div>
+            <div class="insight-card-title">Admission visibility</div>
+            <p class="insight-card-text">Reception and administrators can track active admissions and discharges from the registry.</p>
         </div>
     </div>
 </div>
@@ -60,6 +109,7 @@
                         <th>DOB</th>
                         <th>Gender</th>
                         <th>Blood</th>
+                        <th>Status</th>
                         <th class="text-end">Actions</th>
                     </tr>
                 </thead>
@@ -79,6 +129,11 @@
                         <td>{{ patient.gender }}</td>
                         <td>
                             <span class="badge bg-light text-dark">{{ patient.blood_type or 'N/A' }}</span>
+                        </td>
+                        <td>
+                            <span class="status-chip {% if patient.is_admitted or patient.status == 'Admitted' %}status-chip-info{% elif patient.status == 'Active' %}status-chip-success{% elif patient.status == 'Discharged' %}status-chip-muted{% else %}status-chip-warning{% endif %}">
+                                {{ 'Admitted' if patient.is_admitted else patient.status }}
+                            </span>
                         </td>
                         <td class="text-end">
                             <div class="btn-group" role="group">
@@ -105,7 +160,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="{% if current_user.has_role('doctor') %}6{% else %}8{% endif %}" class="empty-state">
+                        <td colspan="{% if current_user.has_role('doctor') %}7{% else %}9{% endif %}" class="empty-state">
                             <i class="fas fa-user-slash fa-2x text-muted d-block mb-2"></i>
                             No patients registered yet.
                         </td>

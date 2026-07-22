@@ -67,6 +67,30 @@
     </div>
 </div>
 
+<div class="insight-strip">
+    <div class="insight-card">
+        <span class="insight-card-icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-user-doctor"></i></span>
+        <div>
+            <div class="insight-card-title">Doctor approval flow</div>
+            <p class="insight-card-text">{{ pending_count }} patient requests are waiting for time assignment or rejection.</p>
+        </div>
+    </div>
+    <div class="insight-card">
+        <span class="insight-card-icon bg-success bg-opacity-10 text-success"><i class="fas fa-calendar-check"></i></span>
+        <div>
+            <div class="insight-card-title">Confirmed schedules</div>
+            <p class="insight-card-text">{{ accepted_count }} appointments have been accepted with clinical follow-up available.</p>
+        </div>
+    </div>
+    <div class="insight-card">
+        <span class="insight-card-icon bg-info bg-opacity-10 text-info"><i class="fas fa-clipboard-check"></i></span>
+        <div>
+            <div class="insight-card-title">Visit lifecycle</div>
+            <p class="insight-card-text">Requests move from pending to accepted, completed, cancelled, or rejected for audit clarity.</p>
+        </div>
+    </div>
+</div>
+
 <div class="surface">
     <div class="surface-header">
         <h2 class="surface-title"><i class="fas fa-list-check text-primary me-2"></i>Appointment Queue</h2>
@@ -114,13 +138,13 @@
                     <td class="text-muted">{{ appt.reason }}</td>
                     {% endif %}
                     <td>
-                        <span class="badge
-                            {% if appt.status == 'Pending' %}bg-warning text-dark
-                            {% elif appt.status == 'Accepted' %}bg-success
-                            {% elif appt.status == 'Rejected' %}bg-danger
-                            {% elif appt.status == 'Completed' %}bg-info
-                            {% elif appt.status == 'Cancelled' %}bg-secondary
-                            {% else %}bg-primary{% endif %}">
+                        <span class="status-chip
+                            {% if appt.status == 'Pending' %}status-chip-warning
+                            {% elif appt.status == 'Accepted' %}status-chip-success
+                            {% elif appt.status == 'Rejected' %}status-chip-danger
+                            {% elif appt.status == 'Completed' %}status-chip-info
+                            {% elif appt.status == 'Cancelled' %}status-chip-muted
+                            {% else %}status-chip-info{% endif %}">
                             {{ appt.status }}
                         </span>
                     </td>

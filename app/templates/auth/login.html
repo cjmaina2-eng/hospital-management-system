@@ -21,7 +21,7 @@
 
     .login-brand-panel {
         background:
-            linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 64, 175, 0.92)),
+            linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(15, 118, 110, 0.88)),
             url("https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1200&q=80");
         background-size: cover;
         background-position: center;
@@ -45,6 +45,33 @@
         border: 1px solid rgba(255, 255, 255, 0.14);
         border-radius: 8px;
         padding: 1rem;
+    }
+
+    .login-kpi-strip {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: repeat(3, 1fr);
+        margin-top: 1.25rem;
+    }
+
+    .login-kpi {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 8px;
+        padding: 0.8rem;
+    }
+
+    .login-kpi strong {
+        display: block;
+        font-size: 1.05rem;
+        line-height: 1.1;
+    }
+
+    .login-kpi span {
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
     }
 
     .auth-tabs {
@@ -100,6 +127,12 @@
             align-items: flex-start;
         }
     }
+
+    @media (max-width: 575.98px) {
+        .login-kpi-strip {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 
 {% set otp_requested = session.get('login_code_email') %}
@@ -113,10 +146,24 @@
                         <div class="brand-mark mb-4">
                             <i class="fas fa-hospital-user fa-2x"></i>
                         </div>
-                        <h1 class="h2 fw-bold mb-3">MyHHub</h1>
+                        <h1 class="h2 fw-bold mb-3">Kirwara HMS</h1>
                         <p class="lead mb-0">
-                            Secure access for hospital teams managing patients, appointments, billing, lab work, and reports.
+                            Professional hospital operations for appointments, patient records, billing, lab work, and reporting.
                         </p>
+                        <div class="login-kpi-strip">
+                            <div class="login-kpi">
+                                <strong>RBAC</strong>
+                                <span>Secure roles</span>
+                            </div>
+                            <div class="login-kpi">
+                                <strong>OTP</strong>
+                                <span>Email login</span>
+                            </div>
+                            <div class="login-kpi">
+                                <strong>M-Pesa</strong>
+                                <span>Payments</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="row g-3 mt-4">
@@ -145,7 +192,7 @@
                     <div class="mb-4">
                         <p class="text-primary fw-semibold mb-2">Hospital Management System</p>
                         <h2 class="fw-bold mb-2">Sign in to your account</h2>
-                        <p class="text-muted mb-0">Choose password login or request an OTP code using your registered email.</p>
+                        <p class="text-muted mb-0">Access the live clinical, administrative, billing, and laboratory workspace.</p>
                     </div>
 
                     <ul class="nav auth-tabs mb-4" id="loginTabs" role="tablist">
