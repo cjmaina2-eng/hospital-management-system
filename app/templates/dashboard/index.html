@@ -344,8 +344,8 @@
 </section>
 
 <section class="row g-3 mb-4">
-    <div class="col-sm-6 col-xl-3">
-        <div class="metric-card">
+        <div class="col-sm-6 col-xl-3">
+            <div class="metric-card">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <div class="metric-label">Patients</div>
                 <div class="metric-icon bg-primary bg-opacity-10 text-primary">
@@ -392,6 +392,20 @@
             <div class="metric-detail"><i class="fas fa-file-invoice"></i> KES {{ outstanding_balance|default(0)|round(2) }} outstanding</div>
         </div>
     </div>
+    {% if is_pharmacist %}
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="metric-label">Pharmacy Pickups</div>
+                <div class="metric-icon bg-success bg-opacity-10 text-success">
+                    <i class="fas fa-prescription-bottle-medical"></i>
+                </div>
+            </div>
+            <div class="metric-value">{{ pharmacy_pickups|default(0) }}</div>
+            <div class="metric-detail"><i class="fas fa-circle-check"></i> Paid medication orders ready</div>
+        </div>
+    </div>
+    {% endif %}
 </section>
 
 <section class="operations-grid mb-4">
@@ -522,6 +536,20 @@
                 <span>
                     <span class="d-block fw-bold">My Appointments</span>
                     <span class="text-muted small">Review your schedule</span>
+                </span>
+            </a>
+        </div>
+        {% endif %}
+
+        {% if is_pharmacist %}
+        <div class="col-sm-6 col-xl-3">
+            <a href="{{ url_for('pharmacy.index') }}" class="action-card">
+                <span class="action-icon bg-success bg-opacity-10 text-success">
+                    <i class="fas fa-prescription-bottle-medical"></i>
+                </span>
+                <span>
+                    <span class="d-block fw-bold">Medication Pickup</span>
+                    <span class="text-muted small">Dispense paid doses</span>
                 </span>
             </a>
         </div>

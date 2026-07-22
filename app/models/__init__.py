@@ -1,6 +1,6 @@
 from app.models.user import User, Role, user_roles
 from app.models.patient import Patient
-from app.models.doctor import Doctor
+from app.models.doctor import Doctor, Nurse
 from app.models.appointment import Appointment
 from app.models.medical_record import MedicalRecord
 from app.models.billing import Bill, BillItem

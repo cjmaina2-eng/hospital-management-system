@@ -3,30 +3,26 @@
 {% block title %}Bill #{{ bill.id }}{% endblock %}
 
 {% block content %}
-<h1>Bill #{{ bill.id }}</h1>
-<div class="card">
-    <div class="card-header">
-        <strong>Patient:</strong> {{ bill.patient.user.first_name }} {{ bill.patient.user.last_name }}
-        | <strong>Date:</strong> {{ bill.bill_date.strftime('%Y-%m-%d %H:%M') }}
-        | <strong>Status:</strong> 
-        <span class="badge {% if bill.status == 'Paid' %}bg-success{% elif bill.status == 'Partial' %}bg-warning{% else %}bg-danger{% endif %}">
-            {{ bill.status }}
-        </span>
+<div class="page-header">
+    <div>
+        <div class="page-kicker">Billing</div>
+        <h1 class="page-title">Bill #{{ bill.id }}</h1>
+        <p class="page-subtitle">Patient invoice, payment progress, and pharmacy status.</p>
     </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-6">
-                <p><strong>Due Date:</strong> {{ bill.due_date.strftime('%Y-%m-%d') if bill.due_date else 'N/A' }}</p>
-                <p><strong>Payment Method:</strong> {{ bill.payment_method or 'Not specified' }}</p>
-                {% if bill.payment_method == 'M-Pesa' and bill.mpesa_receipt_number %}
-                <div class="alert alert-success mt-2">
-                    <p class="mb-1"><strong>M-Pesa Receipt:</strong> {{ bill.mpesa_receipt_number }}</p>
-                    <p class="mb-0"><strong>Transaction Date:</strong> {{ bill.mpesa_transaction_date.strftime('%Y-%m-%d %H:%M') if bill.mpesa_transaction_date else 'Pending' }}</p>
-                </div>
-                {% endif %}
-                <p><strong>Notes:</strong> {{ bill.notes or '—' }}</p>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-6">
+        <div class="surface">
+            <div class="surface-header">
+                <h2 class="surface-title"><i class="fas fa-user text-primary me-2"></i>Patient</h2>
+            </div>
+            <div class="p-3">
+                <p class="mb-1"><strong>Name:</strong> {{ bill.patient.user.first_name }} {{ bill.patient.user.last_name }}</p>
+                <p class="mb-1"><strong>Patient ID:</strong> #{{ bill.patient.id }}</p>
+                <p class="mb-1"><strong>Date:</strong> {{ bill.bill_date.strftime('%Y-%m-%d %H:%M') }}</p>
                 {% if bill.appointment %}
-                <p>
+                <p class="mb-0">
                     <strong>Appointment:</strong>
                     {% if bill.appointment.appointment_date %}
                     {{ bill.appointment.appointment_date.strftime('%Y-%m-%d %H:%M') }}
@@ -36,74 +32,197 @@
                 </p>
                 {% endif %}
             </div>
-            <div class="col-md-6">
-                <p><strong>Total Amount:</strong> ${{ "%.2f"|format(bill.total_amount) }}</p>
-                <p><strong>Paid Amount:</strong> ${{ "%.2f"|format(bill.paid_amount) }}</p>
-                <p><strong>Balance Due:</strong> ${{ "%.2f"|format(bill.total_amount - bill.paid_amount) }}</p>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="surface">
+            <div class="surface-header">
+                <h2 class="surface-title"><i class="fas fa-coins text-primary me-2"></i>Totals</h2>
+            </div>
+            <div class="p-3">
+                <p class="mb-1 amount-text">Total Amount: <strong>KES {{ "%.2f"|format(bill.total_amount) }}</strong></p>
+                <p class="mb-1 amount-text text-success">Paid Amount: <strong>KES {{ "%.2f"|format(bill.paid_amount) }}</strong></p>
+                <p class="mb-1 amount-text">Balance Due: <strong>KES {{ "%.2f"|format(bill.total_amount - bill.paid_amount) }}</strong></p>
+                <p class="mb-0">
+                    <strong>Status:</strong>
+                    <span class="badge {% if bill.status == 'Paid' %}bg-success{% elif bill.status == 'Partial' %}bg-warning{% elif bill.status == 'Cancelled' %}bg-secondary{% else %}bg-danger{% endif %}">
+                        {{ bill.status }}
+                    </span>
+                </p>
             </div>
         </div>
-        <hr>
-        <h5>Line Items</h5>
-        <table class="table table-sm">
+    </div>
+</div>
+
+<div class="surface mb-3">
+    <div class="surface-header">
+        <h2 class="surface-title"><i class="fas fa-file-invoice text-primary me-2"></i>Line Items</h2>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
             <thead>
                 <tr>
                     <th>Description</th>
-                    <th>Qty</th>
-                    <th>Unit Price</th>
-                    <th>Total</th>
-                    {% if current_user.has_role('admin') or current_user.has_role('receptionist') %}
-                    <th>Action</th>
+                    <th class="text-end">Qty</th>
+                    <th class="text-end">Unit Price</th>
+                    <th class="text-end">Total</th>
+                    {% if (current_user.has_role('admin') or current_user.has_role('receptionist')) and bill.status != 'Paid' %}
+                    <th></th>
                     {% endif %}
                 </tr>
             </thead>
+{% set col_span = 4 %}{% if (current_user.has_role('admin') or current_user.has_role('receptionist')) and bill.status != 'Paid' %}{% set col_span = 5 %}{% endif %}
             <tbody>
                 {% for item in bill.items %}
                 <tr>
                     <td>{{ item.description }}</td>
-                    <td>{{ item.quantity }}</td>
-                    <td>${{ "%.2f"|format(item.unit_price) }}</td>
-                    <td>${{ "%.2f"|format(item.total) }}</td>
+                    <td class="text-end">{{ item.quantity }}</td>
+                    <td class="text-end amount-text">KES {{ "%.2f"|format(item.unit_price) }}</td>
+                    <td class="text-end amount-text">KES {{ "%.2f"|format(item.total) }}</td>
                     {% if (current_user.has_role('admin') or current_user.has_role('receptionist')) and bill.status != 'Paid' %}
                     <td>
-                        <form action="{{ url_for('billing.remove_item', item_id=item.id) }}" method="POST" style="display:inline;">
-                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Remove this item?');">Remove</button>
+                        <form action="{{ url_for('billing.remove_item', item_id=item.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Remove this item?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
                         </form>
                     </td>
                     {% endif %}
                 </tr>
+                {% else %}
+                <tr>
+                    <td colspan="{{ col_span }}" class="empty-state">No line items on this bill.</td>
+                </tr>
                 {% endfor %}
             </tbody>
+            {% set foot_span = 3 %}{% if (current_user.has_role('admin') or current_user.has_role('receptionist')) and bill.status != 'Paid' %}{% set foot_span = 4 %}{% endif %}
+            <tfoot>
+                <tr>
+                    <td colspan="{{ foot_span }}" class="text-end fw-bold">Grand Total</td>
+                    <td class="text-end amount-text fw-bold">KES {{ "%.2f"|format(bill.total_amount) }}</td>
+                    {% if (current_user.has_role('admin') or current_user.has_role('receptionist')) and bill.status != 'Paid' %}
+                    <td></td>
+                    {% endif %}
+                </tr>
+            </tfoot>
         </table>
+    </div>
+</div>
+
+{% if bill.medication_items %}
+<div class="surface mb-3">
+    <div class="surface-header">
+        <h2 class="surface-title"><i class="fas fa-pills text-primary me-2"></i>Pharmacy Status</h2>
+        <span class="status-chip {% if bill.pharmacy_status == 'Dispensed' %}status-chip-success{% elif bill.pharmacy_status == 'Ready' %}status-chip-warning{% else %}status-chip-muted{% endif %}">
+            {{ bill.pharmacy_status if bill.pharmacy_status != 'Not Required' else 'Pending' }}
+        </span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Medication</th>
+                    <th class="text-end">Dose</th>
+                    <th class="text-end">Price per Dose</th>
+                    <th class="text-end">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in bill.medication_items %}
+                <tr>
+                    <td>{{ item.description }}</td>
+                    <td class="text-end">{{ item.quantity }}</td>
+                    <td class="text-end amount-text">KES {{ "%.2f"|format(item.unit_price) }}</td>
+                    <td class="text-end amount-text">KES {{ "%.2f"|format(item.total) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="text-end fw-bold">Pharmacy Total</td>
+                    <td class="text-end amount-text fw-bold">KES {{ "%.2f"|format(bill.medication_items|sum(attribute='total')) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if bill.medication_items and bill.pharmacy_status != 'Dispensed' %}
+<div class="d-flex gap-2 mb-3">
+    <a href="{{ url_for('pharmacy.view', bill_id=bill.id) }}" class="btn btn-primary">
+        <i class="fas fa-prescription-bottle-medical"></i> Pharmacy Pickup
+    </a>
+</div>
+{% endif %}
+
+<div class="row g-3">
+    <div class="col-md-6">
         {% if (current_user.has_role('admin') or current_user.has_role('receptionist')) and bill.status != 'Paid' %}
-        <div class="mt-3">
-            <h6>Add Item</h6>
-            <form action="{{ url_for('billing.add_item', bill_id=bill.id) }}" method="POST" class="row g-2">
-                <div class="col-5"><input type="text" class="form-control" name="description" placeholder="Description" required></div>
-                <div class="col-2"><input type="number" class="form-control" name="quantity" placeholder="Qty" value="1" min="1"></div>
-                <div class="col-3"><input type="number" class="form-control" name="unit_price" placeholder="Price" step="0.01" required></div>
-                <div class="col-2"><button type="submit" class="btn btn-primary">Add</button></div>
-            </form>
-        </div>
-        <hr>
-        <div class="mt-3">
-            <h6>Record Payment</h6>
-            <form action="{{ url_for('billing.record_payment', bill_id=bill.id) }}" method="POST" class="row g-2">
-                <div class="col-4"><input type="number" class="form-control" name="amount" placeholder="Amount" step="0.01" required></div>
-                <div class="col-2"><button type="submit" class="btn btn-success">Pay</button></div>
-            </form>
+        <div class="surface">
+            <div class="surface-header">
+                <h2 class="surface-title"><i class="fas fa-circle-plus text-primary me-2"></i>Add Item</h2>
+            </div>
+            <div class="p-3">
+                <form action="{{ url_for('billing.add_item', bill_id=bill.id) }}" method="POST" class="row g-2">
+                    <div class="col-5">
+                        <input type="text" class="form-control" name="description" placeholder="Description" required>
+                    </div>
+                    <div class="col-2">
+                        <input type="number" class="form-control" name="quantity" placeholder="Qty" value="1" min="1">
+                    </div>
+                    <div class="col-3">
+                        <input type="number" class="form-control" name="unit_price" placeholder="Price" step="0.01" required>
+                    </div>
+                    <div class="col-2">
+                        <button type="submit" class="btn btn-primary w-100">Add</button>
+                    </div>
+                </form>
+            </div>
         </div>
         {% endif %}
     </div>
-    <div class="card-footer">
-        {% if current_user.has_role('admin') or current_user.has_role('receptionist') %}
-        <a href="{{ url_for('billing.edit', bill_id=bill.id) }}" class="btn btn-warning">Edit</a>
-        {% endif %}
-        <a href="{{ url_for('billing.index') }}" class="btn btn-secondary">Back to Bills</a>
-        {% if bill.status != 'Paid' and (current_user.has_role('patient') or current_user.has_role('admin') or current_user.has_role('receptionist')) %}
-        <a href="{{ url_for('billing.pay', bill_id=bill.id) }}" class="btn btn-success">
-            <i class="fas fa-credit-card"></i> Pay Now
-        </a>
+    <div class="col-md-6">
+        {% if (current_user.has_role('admin') or current_user.has_role('receptionist')) and bill.status != 'Paid' %}
+        <div class="surface">
+            <div class="surface-header">
+                <h2 class="surface-title"><i class="fas fa-money-bill-transfer text-primary me-2"></i>Record Payment</h2>
+            </div>
+            <div class="p-3">
+                <form action="{{ url_for('billing.record_payment', bill_id=bill.id) }}" method="POST" class="row g-2">
+                    <div class="col-8">
+                        <input type="number" class="form-control" name="amount" placeholder="Amount" step="0.01" required>
+                    </div>
+                    <div class="col-4">
+                        <button type="submit" class="btn btn-success w-100">Record</button>
+                    </div>
+                </form>
+            </div>
+        </div>
         {% endif %}
     </div>
+</div>
+
+{% if bill.payment_method == 'M-Pesa' and bill.mpesa_receipt_number %}
+<div class="surface mt-3">
+    <div class="surface-header">
+        <h2 class="surface-title"><i class="fas fa-mobile-alt text-primary me-2"></i>M-Pesa Transaction</h2>
+    </div>
+    <div class="p-3">
+        <p class="mb-1"><strong>Receipt:</strong> {{ bill.mpesa_receipt_number }}</p>
+        <p class="mb-0"><strong>Transaction Date:</strong> {{ bill.mpesa_transaction_date.strftime('%Y-%m-%d %H:%M') if bill.mpesa_transaction_date else 'Pending' }}</p>
+    </div>
+</div>
+{% endif %}
+
+<div class="d-flex gap-2 mt-3">
+    {% if current_user.has_role('admin') or current_user.has_role('receptionist') %}
+    <a href="{{ url_for('billing.edit', bill_id=bill.id) }}" class="btn btn-outline-warning"><i class="fas fa-pen"></i> Edit</a>
+    {% endif %}
+    <a href="{{ url_for('billing.index') }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back to Bills</a>
+    {% if bill.status != 'Paid' and (current_user.has_role('patient') or current_user.has_role('admin') or current_user.has_role('receptionist')) %}
+    <a href="{{ url_for('billing.pay', bill_id=bill.id) }}" class="btn btn-primary"><i class="fas fa-credit-card"></i> Pay Now</a>
+    {% endif %}
+    {% if bill.status == 'Paid' and bill.medication_items and (current_user.has_role('pharmacist') or current_user.has_role('admin')) %}
+    <a href="{{ url_for('pharmacy.view', bill_id=bill.id) }}" class="btn btn-outline-info"><i class="fas fa-prescription-bottle-medical"></i> Dispense</a>
+    {% endif %}
 </div>
 {% endblock %}

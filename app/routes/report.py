@@ -35,7 +35,7 @@ def api_summary():
     total_revenue = db.session.query(func.sum(Bill.paid_amount)).scalar() or 0.0
     unpaid_bills = Bill.query.filter_by(status='Unpaid').count()
     completed_appointments = Appointment.query.filter_by(status='Completed').count()
-    scheduled_appointments = Appointment.query.filter_by(status='Scheduled').count()
+    scheduled_appointments = Appointment.query.filter_by(status='Accepted').count()
     
     return jsonify({
         'total_patients': total_patients,

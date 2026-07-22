@@ -1,72 +1,111 @@
 {% extends "base.html" %}
 
-{% block title %}Accept Appointment & Assign Time{% endblock %}
+{% block title %}Approve Appointment & Assign Time{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow">
-            <div class="card-header bg-success text-white">
-                <h4 class="mb-0"><i class="fas fa-check-circle"></i> Accept Appointment & Assign Time</h4>
+<div class="page-header">
+    <div>
+        <div class="page-kicker">Clinical Review</div>
+        <h1 class="page-title">Approve Appointment & Assign Time</h1>
+        <p class="page-subtitle">Review the patient request and assign an exact consultation time slot.</p>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="surface">
+            <div class="surface-header">
+                <h2 class="surface-title"><i class="fas fa-user-injured text-primary me-2"></i>{{ appointment.patient.user.first_name }} {{ appointment.patient.user.last_name }}</h2>
+                <span class="status-chip status-chip-warning">Pending</span>
             </div>
-            <div class="card-body">
-                <!-- Appointment Details -->
+            <div class="p-3">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="fw-semibold" style="width:30%;">Reason</td>
+                                <td>{{ appointment.reason }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">Requested Date</td>
+                                <td>{{ appointment.appointment_date_requested.strftime('%B %d, %Y') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">Appointment ID</td>
+                                <td><span class="badge bg-light text-dark">#{{ appointment.id }}</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="p-3 border-top">
                 <div class="alert alert-info">
-                    <p class="mb-1"><strong>Patient:</strong> {{ appointment.patient.user.first_name }} {{ appointment.patient.user.last_name }}</p>
-                    <p class="mb-1"><strong>Reason:</strong> {{ appointment.reason }}</p>
-                    <p class="mb-0"><strong>Requested Date:</strong> {{ appointment.appointment_date_requested.strftime('%B %d, %Y') }}</p>
+                    <i class="fas fa-info-circle me-1"></i>
+                    <strong>Note:</strong> The patient will receive an email notification with the confirmed appointment time once you accept.
                 </div>
+            </div>
+        </div>
 
-                <!-- Time Assignment Form -->
-                <form method="POST">
-                    <div class="mb-3">
-                        <label for="appointment_time" class="form-label fw-semibold">
-                            <i class="fas fa-clock text-primary"></i> Assign Appointment Time
-                        </label>
-                        <input type="time" class="form-control form-control-lg" 
-                               id="appointment_time" name="appointment_time" 
-                               min="08:00" max="18:00" step="1800" required>
-                        <small class="text-muted">Select a time between 8:00 AM and 6:00 PM</small>
+        <div class="surface mt-3">
+            <div class="surface-header">
+                <h2 class="surface-title"><i class="fas fa-calendar-day text-success me-2"></i>{{ appointment.appointment_date_requested.strftime('%B %d, %Y') }}</h2>
+            </div>
+            <div class="p-3">
+                <form method="POST" id="acceptForm">
+                    <p class="text-muted small mb-3">Select a time slot below to assign it to this appointment.</p>
+                    {% if available_slots %}
+                    <div class="row g-2">
+                        {% for slot in available_slots %}
+                        <div class="col-4 col-sm-3">
+                            <input type="radio" class="btn-check" name="appointment_time"
+                                   id="slot{{ loop.index }}"
+                                   value="{{ slot.strftime('%H:%M') }}"
+                                   autocomplete="off" required>
+                            <label class="btn btn-outline-primary w-100"
+                                   for="slot{{ loop.index }}">{{ slot.strftime('%I:%M %p') }}</label>
+                        </div>
+                        {% endfor %}
                     </div>
-
-                    <div class="mb-3">
-                        <p class="text-muted small">
-                            <i class="fas fa-info-circle"></i> 
-                            <strong>Note:</strong> The patient will receive an email notification with the confirmed appointment time once you accept.
-                        </p>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-calendar-xmark me-1"></i>
+                        No open slots available for this date. The calendar is full.
                     </div>
-
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-success btn-lg">
-                            <i class="fas fa-check-circle"></i> Accept & Confirm Appointment
-                        </button>
-                        <a href="{{ url_for('appointment.index') }}" class="btn btn-secondary btn-lg">
-                            Cancel
-                        </a>
-                    </div>
+                    {% endif %}
+                    {% if available_slots %}
+                    <button type="submit" class="btn btn-success btn-lg mt-3 w-100">
+                        <i class="fas fa-check"></i> Confirm & Accept Appointment
+                    </button>
+                    {% endif %}
                 </form>
+            </div>
+        </div>
+    </div>
 
-                <!-- Time Selection Tips -->
-                <div class="alert alert-light mt-4 border">
-                    <h6><i class="fas fa-lightbulb text-warning"></i> Tips for Scheduling</h6>
-                    <ul class="small mb-0">
-                        <li>Allow 30 minutes to 1 hour per appointment</li>
-                        <li>Avoid consecutive appointments if possible</li>
-                        <li>Consider your other scheduled appointments</li>
-                        <li>Leave buffer time between sessions</li>
-                    </ul>
-                </div>
+    <div class="col-lg-5">
+        <div class="surface">
+            <div class="surface-header">
+                <h2 class="surface-title"><i class="fas fa-lightbulb text-warning me-2"></i>Scheduling Tips</h2>
+            </div>
+            <div class="p-3">
+                <ul class="small mb-0">
+                    <li class="mb-2">Allow 30 minutes to 1 hour per appointment</li>
+                    <li class="mb-2">Avoid consecutive appointments if possible</li>
+                    <li class="mb-2">Consider your other scheduled appointments</li>
+                    <li class="mb-2">Leave buffer time between sessions</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="surface mt-3">
+            <div class="surface-header">
+                <h2 class="surface-title"><i class="fas fa-calendar-check text-info me-2"></i>Date Summary</h2>
+            </div>
+            <div class="p-3">
+                <div class="h3 fw-bold text-center text-primary">{{ appointment.appointment_date_requested.strftime('%B %d, %Y') }}</div>
+                <div class="text-center text-muted mt-2">Requested by patient</div>
             </div>
         </div>
     </div>
 </div>
-
-<script>
-    // Set current time as default
-    document.addEventListener('DOMContentLoaded', function() {
-        const timeInput = document.getElementById('appointment_time');
-        // Default to 09:00 AM
-        timeInput.value = '09:00';
-    });
-</script>
 {% endblock %}

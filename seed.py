@@ -12,7 +12,8 @@ def seed_database():
             Role(name='nurse', description='Nurse'),
             Role(name='receptionist', description='Receptionist'),
             Role(name='patient', description='Patient'),
-            Role(name='lab_technician', description='Lab Technician')
+            Role(name='lab_technician', description='Lab Technician'),
+            Role(name='pharmacist', description='Pharmacist')
         ]
         for role in roles:
             if not Role.query.filter_by(name=role.name).first():
@@ -107,6 +108,18 @@ def seed_database():
             db.session.add(lab_user)
         db.session.commit()
 
+        if not User.query.filter_by(email='pharmacy@hospital.com').first():
+            pharmacy_user = User(
+                email='pharmacy@hospital.com',
+                first_name='Pharmacy',
+                last_name='Desk',
+                is_active=True
+            )
+            pharmacy_user.set_password('pharmacy123')
+            pharmacy_user.roles.append(Role.query.filter_by(name='pharmacist').first())
+            db.session.add(pharmacy_user)
+        db.session.commit()
+
         # 6. Create services
         services = [
             Service(name='Consultation', description='Standard consultation fee', default_price=150.00, category='Consultation'),
@@ -158,13 +171,14 @@ def seed_database():
                 db.session.commit()
 
         # Consultation fee (standard for every discharge)
-        consultation = Service(
-            name='Consultation Fee',
-            description='Standard consultation and check-up fee',
-            default_price=1000.00,
-            category='Consultation'
-        )
-        db.session.add(consultation)
+        if not Service.query.filter_by(name='Consultation Fee').first():
+            consultation = Service(
+                name='Consultation Fee',
+                description='Standard consultation and check-up fee',
+                default_price=1000.00,
+                category='Consultation'
+            )
+            db.session.add(consultation)
 
         # Medications
         medications = [
@@ -180,13 +194,15 @@ def seed_database():
             Service(name='Diclofenac 50mg', description='Pain reliever', default_price=70.00, category='Medication'),
         ]
         for med in medications:
-            db.session.add(med)        
+            if not Service.query.filter_by(name=med.name).first():
+                db.session.add(med)
 
         print("✅ Database seeded successfully!")
         print(f"Admin: {admin_email} / admin123")
         print("Doctor: doctor@hospital.com / doctor123")
         print("Patient: patient@example.com / patient123")
         print("Lab Technician: lab@hospital.com / lab123")
+        print("Pharmacist: pharmacy@hospital.com / pharmacy123")
         print("Services added: Consultation, Lab tests, etc.")
 
 if __name__ == '__main__':

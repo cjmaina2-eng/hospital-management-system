@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Pharmacy Pickup{% endblock %}
+
+{% block content %}
+{% set ready_count = ready_bills|length %}
+{% set dispensed_count = dispensed_bills|length %}
+{% set total_paid = bills|sum(attribute='total_amount') %}
+
+<div class="page-header">
+    <div>
+        <div class="page-kicker">Pharmacy</div>
+        <h1 class="page-title">Medication Pickup</h1>
+        <p class="page-subtitle">Release paid medications only. Clinical notes, diagnosis, and appointment reasons are not shown here.</p>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-4">
+        <div class="summary-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="summary-label">Ready for Pickup</div>
+                    <div class="summary-value">{{ ready_count }}</div>
+                </div>
+                <span class="summary-icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-prescription-bottle-medical"></i></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-4">
+        <div class="summary-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="summary-label">Dispensed</div>
+                    <div class="summary-value">{{ dispensed_count }}</div>
+                </div>
+                <span class="summary-icon bg-success bg-opacity-10 text-success"><i class="fas fa-circle-check"></i></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-4">
+        <div class="summary-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="summary-label">Total Paid</div>
+                    <div class="summary-value">KES {{ "%.0f"|format(total_paid) }}</div>
+                </div>
+                <span class="summary-icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-sack-dollar"></i></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="surface">
+    <div class="surface-header">
+        <h2 class="surface-title"><i class="fas fa-pills text-primary me-2"></i>Paid Medication Queue</h2>
+        <span class="badge bg-primary">{{ bills|length }} records</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Bill</th>
+                    <th>Patient</th>
+                    <th>Total Doses</th>
+                    <th class="text-end">Total Amount</th>
+                    <th>Status</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bill in bills %}
+                {% set total_doses = bill.medication_items|sum(attribute='quantity') %}
+                <tr>
+                    <td><span class="badge bg-light text-dark">#{{ bill.id }}</span></td>
+                    <td>
+                        <strong>{{ bill.patient.user.first_name }} {{ bill.patient.user.last_name }}</strong>
+                        <div class="text-muted small">Patient ID: #{{ bill.patient.id }}</div>
+                    </td>
+                    <td>{{ total_doses }}</td>
+                    <td class="text-end amount-text">KES {{ "%.2f"|format(bill.total_amount) }}</td>
+                    <td>
+                        <span class="status-chip {% if bill.pharmacy_status == 'Dispensed' %}status-chip-success{% else %}status-chip-warning{% endif %}">
+                            {{ bill.pharmacy_status if bill.pharmacy_status != 'Not Required' else 'Ready' }}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('pharmacy.view', bill_id=bill.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="empty-state">
+                        <i class="fas fa-prescription-bottle fa-2x text-muted d-block mb-2"></i>
+                        No paid medication pickups are ready.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

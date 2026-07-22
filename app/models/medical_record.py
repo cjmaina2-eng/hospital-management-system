@@ -7,6 +7,7 @@ class MedicalRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id'), nullable=False)
+    nurse_id = db.Column(db.Integer, db.ForeignKey('nurses.id'), nullable=True)
     appointment_id = db.Column(db.Integer, db.ForeignKey('appointments.id'), nullable=True)
 
     date = db.Column(db.DateTime, default=datetime.utcnow)
@@ -25,6 +26,7 @@ class MedicalRecord(db.Model):
     # Relationships
     patient = db.relationship('Patient', back_populates='medical_records')
     doctor = db.relationship('Doctor', back_populates='medical_records')
+    nurse = db.relationship('Nurse', back_populates='medical_records')
     appointment = db.relationship('Appointment', back_populates='medical_record')
 
     def __repr__(self):

@@ -1,1 +1,1 @@
-from app.routes import auth, dashboard, patient, appointment, medical, billing, report, lab, doctor
+from app.routes import auth, dashboard, patient, appointment, medical, billing, report, lab, doctor, pharmacy

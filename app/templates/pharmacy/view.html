@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Medication Dispensing Queue{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div class="page-kicker">Pharmacy</div>
+        <h1 class="page-title">Medication Dispensing Queue - Bill #{{ bill.id }}</h1>
+        <p class="page-subtitle">Verify patient identity and release medications only. Diagnosis, symptoms, and clinical notes are not shown here.</p>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-6">
+        <div class="surface">
+            <div class="surface-header">
+                <h2 class="surface-title"><i class="fas fa-user text-primary me-2"></i>Patient</h2>
+                <span class="status-chip {% if bill.pharmacy_status == 'Dispensed' %}status-chip-success{% elif bill.pharmacy_status == 'Ready' %}status-chip-warning{% else %}status-chip-muted{% endif %}">
+                    {{ bill.pharmacy_status }}
+                </span>
+            </div>
+            <div class="p-3">
+                <p class="mb-1"><strong>Name:</strong> {{ bill.patient.user.first_name }} {{ bill.patient.user.last_name }}</p>
+                <p class="mb-1"><strong>Patient ID:</strong> #{{ bill.patient.id }}</p>
+                <p class="mb-0 text-muted small">Patient only. No diagnosis, symptoms, or clinical notes displayed.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="surface">
+            <div class="surface-header">
+                <h2 class="surface-title"><i class="fas fa-receipt text-primary me-2"></i>Bill Summary</h2>
+            </div>
+            <div class="p-3">
+                <p class="mb-1"><strong>Bill Date:</strong> {{ bill.bill_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                <p class="mb-1 amount-text">Total: <strong>KES {{ "%.2f"|format(bill.total_amount) }}</strong></p>
+                <p class="mb-1 amount-text text-success">Paid: <strong>KES {{ "%.2f"|format(bill.paid_amount) }}</strong></p>
+                {% if bill.medication_released_at %}
+                <p class="mb-0">
+                    <strong>Dispensed At:</strong> {{ bill.medication_released_at.strftime('%Y-%m-%d %H:%M') }}<br>
+                    <strong>By:</strong> {{ bill.released_by.first_name if bill.released_by else 'Unknown' }} {{ bill.released_by.last_name if bill.released_by else '' }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="surface mb-3">
+    <div class="surface-header">
+        <h2 class="surface-title"><i class="fas fa-pills text-primary me-2"></i>Medication Doses</h2>
+    </div>
+    {% set total_doses = bill.medication_items|sum(attribute='quantity') %}
+    {% set grand_total = bill.medication_items|sum(attribute='total') %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th class="text-center" style="width: 80px;">Dose #</th>
+                    <th>Medication Name</th>
+                    <th>Strength</th>
+                    <th>Instructions</th>
+                    <th class="text-end">Price per Dose</th>
+                    <th class="text-end">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in bill.medication_items %}
+                {% set svc = services.get(item.description.split(' (Dose')[0]) %}
+                <tr>
+                    <td class="text-center">{{ loop.index }}</td>
+                    <td><strong>{{ item.description.split(' (Dose')[0] }}</strong></td>
+                    <td>—</td>
+                    <td>{% if svc and svc.description %}{{ svc.description }}{% else %}As directed{% endif %}</td>
+                    <td class="text-end amount-text">KES {{ "%.2f"|format(item.unit_price) }}</td>
+                    <td class="text-end amount-text">KES {{ "%.2f"|format(item.total) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="5" class="text-end fw-bold">Total Doses & Grand Total</td>
+                    <td class="text-end amount-text fw-bold">KES {{ "%.2f"|format(grand_total) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    <div class="p-3 d-flex gap-2 flex-wrap">
+        {% if bill.pharmacy_status != 'Dispensed' %}
+        <form action="{{ url_for('pharmacy.dispense', bill_id=bill.id) }}" method="POST" onsubmit="return confirm('Mark all {{ total_doses }} doses as dispensed for this patient?');">
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-circle-check"></i> Mark All Dispensed
+            </button>
+        </form>
+        {% endif %}
+        <a href="{{ url_for('pharmacy.index') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Return to Pharmacy Queue
+        </a>
+    </div>
+</div>
+{% endblock %}

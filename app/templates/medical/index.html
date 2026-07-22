@@ -1,48 +1,63 @@
 {% extends "base.html" %}
 
-{% block title %}Medical Records - {{ patient.user.first_name }} {{ patient.user.last_name }}{% endblock %}
+{% block title %}Medical Records — {{ patient.user.first_name }} {{ patient.user.last_name }}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Medical Records for {{ patient.user.first_name }} {{ patient.user.last_name }}</h1>
-    {% if current_user.has_role('doctor') or current_user.has_role('admin') %}
-    <a href="{{ url_for('medical.add', patient_id=patient.id) }}" class="btn btn-primary">Add Record</a>
-    {% endif %}
+<div class="page-header">
+  <div>
+    <div class="page-kicker">Medical Records</div>
+    <h1 class="page-title">{{ patient.user.first_name }} {{ patient.user.last_name }}</h1>
+    <p class="page-subtitle">
+      <strong>Patient ID:</strong> {{ patient.id }} &nbsp;|&nbsp;
+      <span class="badge bg-{{ 'success' if patient.status == 'Active' else 'secondary' }}">{{ patient.status }}</span>
+    </p>
+  </div>
+  {% if current_user.has_role('doctor') or current_user.has_role('nurse') or current_user.has_role('admin') %}
+  <a href="{{ url_for('medical.add', patient_id=patient.id) }}" class="btn btn-primary"><i class="fas fa-plus"></i> Add Record</a>
+  {% endif %}
 </div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
+<div class="surface mb-3">
+  <div class="surface-header">
+    <h2 class="surface-title"><i class="fas fa-clipboard-list text-primary me-2"></i>Records</h2>
+  </div>
+  <div class="p-0">
+    <div class="table-responsive">
+      <table class="table table-striped mb-0">
+        <thead>
+          <tr>
             <th>Date</th>
             <th>Diagnosis</th>
             <th>Prescription</th>
             <th>Status</th>
             <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for record in records %}
-        <tr>
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in records %}
+          <tr>
             <td>{{ record.date.strftime('%Y-%m-%d %H:%M') }}</td>
             <td>{{ record.diagnosis or '—' }}</td>
             <td>{{ record.prescription or '—' }}</td>
-            <td><span class="badge {% if record.status == 'Active' %}bg-warning{% else %}bg-secondary{% endif %}">{{ record.status }}</span></td>
+            <td><span class="badge bg-{{ 'warning' if record.status == 'Active' else 'secondary' }}">{{ record.status }}</span></td>
             <td>
-                <a href="{{ url_for('medical.view', record_id=record.id) }}" class="btn btn-sm btn-info">View</a>
-                {% if current_user.has_role('doctor') or current_user.has_role('admin') %}
-                    {% if current_user.has_role('doctor') and record.doctor.user_id == current_user.id or current_user.has_role('admin') %}
-                    <a href="{{ url_for('medical.edit', record_id=record.id) }}" class="btn btn-sm btn-warning">Edit</a>
-                    <form action="{{ url_for('medical.delete', record_id=record.id) }}" method="POST" style="display:inline;">
-                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this record?');">Delete</button>
-                    </form>
-                    {% endif %}
-                {% endif %}
+              <a href="{{ url_for('medical.view', record_id=record.id) }}" class="btn btn-sm btn-info"><i class="fas fa-eye"></i> View</a>
+              {% if current_user.has_role('doctor') and record.doctor.user_id == current_user.id or current_user.has_role('admin') %}
+              <a href="{{ url_for('medical.edit', record_id=record.id) }}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Edit</a>
+              <form action="{{ url_for('medical.delete', record_id=record.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this record?');">
+                <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+              </form>
+              {% endif %}
             </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="5" class="text-center">No medical records found.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
-<a href="{{ url_for('patient.view', id=patient.id) }}" class="btn btn-secondary">Back to Patient</a>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="empty-state">No medical records found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<a href="{{ url_for('patient.view', id=patient.id) }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Patient</a>
 {% endblock %}

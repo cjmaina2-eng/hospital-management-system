@@ -40,6 +40,7 @@ class User(UserMixin, db.Model):
     roles = db.relationship('Role', secondary=user_roles, back_populates='users')
     patient = db.relationship('Patient', back_populates='user', uselist=False, cascade='all, delete-orphan')
     doctor = db.relationship('Doctor', back_populates='user', uselist=False, cascade='all, delete-orphan')
+    nurse = db.relationship('Nurse', back_populates='user', uselist=False, cascade='all, delete-orphan')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

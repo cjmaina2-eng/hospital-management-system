@@ -538,7 +538,7 @@
                             </a>
                         </li>
                         <!-- Patients -->
-                        {% if current_user.has_role('admin') or current_user.has_role('doctor') or current_user.has_role('receptionist') %}
+                        {% if current_user.has_role('admin') or current_user.has_role('doctor') or current_user.has_role('nurse') or current_user.has_role('receptionist') %}
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint and request.endpoint.startswith('patient.') %}active{% endif %}" href="{{ url_for('patient.index') }}">
                                 <i class="fas fa-users"></i> Patients
@@ -581,6 +581,13 @@
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint and request.endpoint.startswith('doctor.') %}active{% endif %}" href="{{ url_for('doctor.status') }}">
                                 <i class="fas fa-user-md"></i> My Status
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if current_user.has_role('pharmacist') or current_user.has_role('admin') %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('pharmacy.') %}active{% endif %}" href="{{ url_for('pharmacy.index') }}">
+                                <i class="fas fa-prescription-bottle-medical"></i> Pharmacy
                             </a>
                         </li>
                         {% endif %}

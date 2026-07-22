@@ -30,7 +30,6 @@ class DischargeService:
         Returns:
             Bill: The created Bill object.
         """
-        # --- Fetch patient ---
         patient = Patient.query.get(patient_id)
         if not patient:
             raise ValueError("Patient not found")
@@ -38,7 +37,6 @@ class DischargeService:
         if patient.status == 'Discharged':
             raise ValueError("Patient already discharged")
 
-        # --- Create the bill ---
         total = Decimal('0.00')
         bill = Bill(
             patient_id=patient_id,
@@ -50,9 +48,8 @@ class DischargeService:
             paid_amount=Decimal('0.00')
         )
         db.session.add(bill)
-        db.session.flush()  # ensures bill.id is available for line items
+        db.session.flush()
 
-        # --- 1) Consultation Fee (always 1,000 KES) ---
         consultation_service = Service.query.filter_by(name='Consultation Fee').first()
         if consultation_service:
             item = BillItem(
@@ -65,7 +62,6 @@ class DischargeService:
             db.session.add(item)
             total += consultation_service.default_price
         else:
-            # Fallback if service is missing (shouldn't happen after seeding)
             item = BillItem(
                 bill_id=bill.id,
                 description="Consultation Fee",
@@ -76,12 +72,10 @@ class DischargeService:
             db.session.add(item)
             total += Decimal('1000.00')
 
-        # --- 2) Completed Lab Tests ---
         lab_tests = LabTest.query.filter_by(patient_id=patient_id, status='Completed').all()
         for test in lab_tests:
-            # Try to find a matching Service entry (named "Lab: <test_name>")
             service = Service.query.filter_by(name=f"Lab: {test.test_name}").first()
-            price = service.default_price if service else Decimal('50.00')  # fallback price
+            price = service.default_price if service else Decimal('50.00')
             item = BillItem(
                 bill_id=bill.id,
                 description=f"Lab Test: {test.test_name}",
@@ -92,39 +86,35 @@ class DischargeService:
             db.session.add(item)
             total += price
 
-        # --- 3) Medications (selected by doctor) ---
         if medication_items:
             for med in medication_items:
                 service = Service.query.get(med['service_id'])
                 if service and service.category == 'Medication':
                     qty = med['quantity']
-                    item_total = service.default_price * qty
-                    item = BillItem(
-                        bill_id=bill.id,
-                        description=f"{service.name} (x{qty})",
-                        quantity=qty,
-                        unit_price=service.default_price,
-                        total=item_total
-                    )
-                    db.session.add(item)
-                    total += item_total
+                    for dose_num in range(1, qty + 1):
+                        item = BillItem(
+                            bill_id=bill.id,
+                            description=f"{service.name} (Dose {dose_num}/{qty})",
+                            quantity=1,
+                            unit_price=service.default_price,
+                            total=service.default_price
+                        )
+                        db.session.add(item)
+                        total += service.default_price
+            bill.pharmacy_status = 'Ready'
 
-        # --- Update bill total ---
         bill.total_amount = total
 
-        # --- Update patient status ---
         patient.status = 'Discharged'
         patient.discharge_date = datetime.utcnow()
 
-        # --- (Optional) Mark any scheduled appointments as completed ---
-        active_appointments = Appointment.query.filter_by(
-            patient_id=patient_id,
-            status='Scheduled'
+        active_appointments = Appointment.query.filter(
+            Appointment.patient_id == patient_id,
+            Appointment.status.in_(['Accepted', 'Scheduled'])
         ).all()
         for appt in active_appointments:
             appt.status = 'Completed'
 
-        # --- Commit everything ---
         db.session.commit()
 
         return bill

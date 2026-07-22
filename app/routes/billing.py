@@ -93,7 +93,7 @@ def new():
     
     # GET: prepare form data
     patients = Patient.query.all()
-    appointments = Appointment.query.filter_by(status='Scheduled').all()
+    appointments = Appointment.query.filter_by(status='Accepted').all()
     return render_template('billing/new.html', patients=patients, appointments=appointments)
 
 @bp.route('/view/<int:bill_id>')
@@ -209,6 +209,8 @@ def record_payment(bill_id):
     if new_paid >= bill.total_amount:
         bill.paid_amount = bill.total_amount
         bill.status = 'Paid'
+        if bill.medication_items:
+            bill.pharmacy_status = 'Ready'
     else:
         bill.paid_amount = new_paid
         bill.status = 'Partial' if new_paid > 0 else 'Unpaid'
@@ -346,6 +348,8 @@ def mpesa_callback():
                 
                 if amount_paid >= bill.total_amount:
                     bill.status = 'Paid'
+                    if bill.medication_items:
+                        bill.pharmacy_status = 'Ready'
                 else:
                     bill.status = 'Partial'
                 

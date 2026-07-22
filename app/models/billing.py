@@ -16,6 +16,9 @@ class Bill(db.Model):
     source_type = db.Column(db.String(20), default='Manual')  # Manual, Discharge
     source_id = db.Column(db.Integer, nullable=True)  # For linking to discharge events
     notes = db.Column(db.Text)
+    pharmacy_status = db.Column(db.String(20), default='Not Required')  # Not Required, Ready, Dispensed
+    medication_released_at = db.Column(db.DateTime, nullable=True)
+    medication_released_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     
     # M-Pesa fields
     mpesa_checkout_request_id = db.Column(db.String(100), nullable=True, unique=True)
@@ -30,6 +33,11 @@ class Bill(db.Model):
     patient = db.relationship('Patient', back_populates='bills')
     appointment = db.relationship('Appointment')
     items = db.relationship('BillItem', back_populates='bill', cascade='all, delete-orphan')
+    released_by = db.relationship('User')
+
+    @property
+    def medication_items(self):
+        return [item for item in self.items if item.is_medication]
 
     def __repr__(self):
         return f'<Bill {self.id} - Patient {self.patient_id}>'
@@ -48,6 +56,17 @@ class BillItem(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     bill = db.relationship('Bill', back_populates='items')
+
+    @property
+    def is_medication(self):
+        description = (self.description or '').lower()
+        medication_terms = (
+            'mg', 'tablet', 'capsule', 'syrup', 'inhaler', 'injection',
+            'dose', 'paracetamol', 'amoxicillin', 'ibuprofen', 'omeprazole',
+            'cetirizine', 'metformin', 'lisinopril', 'atorvastatin', 'salbutamol',
+            'diclofenac'
+        )
+        return any(term in description for term in medication_terms)
 
     def __repr__(self):
         return f'<BillItem {self.id} - {self.description}>'

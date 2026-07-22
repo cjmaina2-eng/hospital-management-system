@@ -3,70 +3,90 @@
 {% block title %}Discharge Patient{% endblock %}
 
 {% block content %}
-<h1><i class="fas fa-door-open text-primary"></i> Discharge Patient</h1>
-
-<div class="card">
-    <div class="card-header">
-        <h5>{{ patient.user.first_name }} {{ patient.user.last_name }}</h5>
-        <p class="text-muted mb-0">
-            <strong>ID:</strong> #{{ patient.id }} &nbsp;|&nbsp;
-            <strong>Admitted:</strong> {{ patient.admission_date.strftime('%Y-%m-%d %H:%M') if patient.admission_date else 'N/A' }}
-        </p>
-    </div>
-    <div class="card-body">
-        <!-- Consultation Fee Note -->
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i> 
-            <strong>Consultation Fee:</strong> 1,000 KES will be added to the bill automatically.
-        </div>
-
-        <form method="POST" id="dischargeForm">
-            <!-- Medications -->
-            <div class="mb-3">
-                <label class="form-label fw-bold"><i class="fas fa-pills"></i> Medications Prescribed</label>
-                <div id="medications-container">
-                    <div class="row medication-row mb-2">
-                        <div class="col-md-6">
-                            <select class="form-select" name="medication_id[]">
-                                <option value="">Select Medication</option>
-                                {% for med in medications %}
-                                <option value="{{ med.id }}">{{ med.name }} ({{ "%.2f"|format(med.default_price) }} KES)</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <input type="number" class="form-control" name="quantity[]" placeholder="Qty" min="1" value="1">
-                        </div>
-                        <div class="col-md-2">
-                            <button type="button" class="btn btn-danger remove-medication">✕</button>
-                        </div>
-                    </div>
-                </div>
-                <button type="button" class="btn btn-sm btn-secondary" id="add-medication">
-                    <i class="fas fa-plus"></i> Add Medication
-                </button>
-            </div>
-
-            <div class="mb-3">
-                <label for="notes" class="form-label">Discharge Notes</label>
-                <textarea class="form-control" id="notes" name="notes" rows="3" 
-                          placeholder="Optional notes about discharge"></textarea>
-            </div>
-
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-success" onclick="return confirm('Confirm discharge and generate bill?');">
-                    <i class="fas fa-check"></i> Confirm Discharge & Generate Bill
-                </button>
-                <a href="{{ url_for('patient.view', id=patient.id) }}" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Cancel
-                </a>
-            </div>
-        </form>
+<div class="page-header">
+    <div>
+        <div class="page-kicker">Patient</div>
+        <h1 class="page-title">Discharge Patient</h1>
+        <p class="page-subtitle">Confirm discharge details and generate the final bill.</p>
     </div>
 </div>
 
+<div class="surface mb-3">
+    <div class="surface-header">
+        <h2 class="surface-title"><i class="fas fa-user text-primary me-2"></i>{{ patient.user.first_name }} {{ patient.user.last_name }}</h2>
+    </div>
+    <div class="p-3">
+        <div class="row g-3">
+            <div class="col-sm-6">
+                <p class="mb-1"><strong>Patient ID:</strong> #{{ patient.id }}</p>
+                <p class="mb-1"><strong>Gender:</strong> {{ patient.gender or 'N/A' }}</p>
+                <p class="mb-1"><strong>Blood Type:</strong> {{ patient.blood_type or 'N/A' }}</p>
+            </div>
+            <div class="col-sm-6">
+                <p class="mb-1"><strong>Admitted:</strong> {{ patient.admission_date.strftime('%Y-%m-%d %H:%M') if patient.admission_date else 'N/A' }}</p>
+                <p class="mb-1"><strong>Phone:</strong> {{ patient.phone or 'N/A' }}</p>
+                <p class="mb-0"><strong>Status:</strong> <span class="badge bg-secondary">{{ patient.status }}</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i>
+    <strong>Consultation Fee:</strong> KES 1,000.00 will be added automatically to the discharge bill.
+</div>
+
+<form method="POST" id="dischargeForm">
+    <div class="surface mb-3">
+        <div class="surface-header">
+            <h2 class="surface-title"><i class="fas fa-pills text-primary me-2"></i>Medications Prescribed</h2>
+        </div>
+        <div class="p-3">
+            <div id="medications-container">
+                <div class="row medication-row g-2 mb-2">
+                    <div class="col-md-7">
+                        <select class="form-select" name="medication_id[]" required>
+                            <option value="">Select Medication</option>
+                            {% for med in medications %}
+                            <option value="{{ med.id }}">{{ med.name }} (KES {{ "%.2f"|format(med.default_price) }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" class="form-control" name="quantity[]" placeholder="Doses" min="1" value="1" required>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-outline-danger w-100 remove-medication">Remove</button>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="add-medication">
+                <i class="fas fa-plus"></i> Add Medication
+            </button>
+        </div>
+    </div>
+
+    <div class="surface mb-3">
+        <div class="surface-header">
+            <h2 class="surface-title"><i class="fas fa-note-sticky text-primary me-2"></i>Discharge Notes</h2>
+        </div>
+        <div class="p-3">
+            <textarea class="form-control" id="notes" name="notes" rows="3"
+                      placeholder="Optional notes about discharge instructions, follow-up, or medication guidance"></textarea>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-success" onclick="return confirm('Confirm discharge and generate bill?');">
+            <i class="fas fa-check"></i> Generate Discharge Bill
+        </button>
+        <a href="{{ url_for('patient.view', id=patient.id) }}" class="btn btn-outline-secondary">
+            <i class="fas fa-times"></i> Cancel
+        </a>
+    </div>
+</form>
+
 <script>
-    // Add medication row
     document.getElementById('add-medication').addEventListener('click', function() {
         const container = document.getElementById('medications-container');
         const row = container.querySelector('.medication-row').cloneNode(true);
@@ -75,14 +95,16 @@
         container.appendChild(row);
     });
 
-    // Remove medication row
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('remove-medication')) {
             const row = e.target.closest('.medication-row');
-            if (document.querySelectorAll('.medication-row').length > 1) {
+            const allRows = document.querySelectorAll('.medication-row');
+            if (allRows.length > 1) {
                 row.remove();
             } else {
-                alert('At least one medication row is allowed, but you can leave it empty.');
+                row.querySelector('select').value = '';
+                row.querySelector('input[type="number"]').value = '1';
+                alert('At least one medication row is allowed. Fields have been cleared.');
             }
         }
     });

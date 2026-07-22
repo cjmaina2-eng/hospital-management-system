@@ -10,7 +10,7 @@
     <div>
         <div class="page-kicker">Patient Registry</div>
         <h1 class="page-title">Patients</h1>
-        <p class="page-subtitle">Review registered patients, open clinical records, and keep contact details current.</p>
+        <p class="page-subtitle">Review the patient records available to your role and keep the care workflow moving.</p>
     </div>
     {% if current_user.has_role('admin') or current_user.has_role('receptionist') %}
     <a href="{{ url_for('patient.new') }}" class="btn btn-primary flex-shrink-0">
@@ -102,7 +102,7 @@
                     <tr>
                         <th>ID</th>
                         <th>Name</th>
-                        {% if not current_user.has_role('doctor') %}
+                        {% if current_user.has_role('admin') or current_user.has_role('receptionist') %}
                         <th>Email</th>
                         <th>Phone</th>
                         {% endif %}
@@ -121,7 +121,7 @@
                             <strong>{{ patient.user.first_name }} {{ patient.user.last_name }}</strong>
                             <div class="text-muted small">Patient ID: #{{ patient.id }}</div>
                         </td>
-                        {% if not current_user.has_role('doctor') %}
+                        {% if current_user.has_role('admin') or current_user.has_role('receptionist') %}
                         <td><a href="mailto:{{ patient.user.email }}" class="text-decoration-none">{{ patient.user.email }}</a></td>
                         <td>{{ patient.phone or 'N/A' }}</td>
                         {% endif %}
@@ -140,9 +140,11 @@
                                 <a href="{{ url_for('patient.view', id=patient.id) }}" class="btn btn-sm btn-outline-info">
                                     <i class="fas fa-eye"></i><span class="visually-hidden">View patient</span>
                                 </a>
+                                {% if current_user.has_role('doctor') or current_user.has_role('nurse') %}
                                 <a href="{{ url_for('medical.index', patient_id=patient.id) }}" class="btn btn-sm btn-outline-secondary">
                                     <i class="fas fa-notes-medical"></i><span class="visually-hidden">Medical records</span>
                                 </a>
+                                {% endif %}
                                 {% if not current_user.has_role('doctor') and (current_user.has_role('admin') or current_user.has_role('receptionist')) %}
                                 <a href="{{ url_for('patient.edit', id=patient.id) }}" class="btn btn-sm btn-outline-warning">
                                     <i class="fas fa-edit"></i><span class="visually-hidden">Edit patient</span>
@@ -160,7 +162,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="{% if current_user.has_role('doctor') %}7{% else %}9{% endif %}" class="empty-state">
+                        <td colspan="{% if current_user.has_role('admin') or current_user.has_role('receptionist') %}9{% else %}7{% endif %}" class="empty-state">
                             <i class="fas fa-user-slash fa-2x text-muted d-block mb-2"></i>
                             No patients registered yet.
                         </td>

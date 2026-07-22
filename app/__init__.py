@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from config import Config
 from flask_mail import Mail
+from datetime import datetime
 
 # Initialize extensions at module level
 db = SQLAlchemy()
@@ -38,7 +39,7 @@ def create_app(config_class=Config):
     )
 
     # Import and register blueprints.
-    from app.routes import appointment, auth, billing, dashboard, doctor, lab, medical, patient, report
+    from app.routes import appointment, auth, billing, dashboard, doctor, lab, medical, patient, pharmacy, report
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(dashboard.bp)
@@ -46,6 +47,7 @@ def create_app(config_class=Config):
     app.register_blueprint(appointment.bp)
     app.register_blueprint(medical.bp)
     app.register_blueprint(billing.bp)
+    app.register_blueprint(pharmacy.bp)
     app.register_blueprint(report.bp)
     app.register_blueprint(doctor.bp)
 
@@ -59,6 +61,8 @@ def create_app(config_class=Config):
         if current_user.is_authenticated:
             return redirect(url_for('dashboard.index'))
         return redirect(url_for('auth.login'))
+
+    app.jinja_env.globals['now'] = datetime.now
 
     @app.errorhandler(404)
     def not_found(e):

@@ -7,6 +7,7 @@ class LabTest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id'), nullable=False)
+    nurse_id = db.Column(db.Integer, db.ForeignKey('nurses.id'), nullable=True)
     test_name = db.Column(db.String(200), nullable=False)
     test_description = db.Column(db.Text)
     ordered_date = db.Column(db.DateTime, default=datetime.utcnow)
@@ -20,6 +21,7 @@ class LabTest(db.Model):
     # Relationships
     patient = db.relationship('Patient', back_populates='lab_tests')
     doctor = db.relationship('Doctor', back_populates='lab_tests')
+    nurse = db.relationship('Nurse', back_populates='lab_tests')
 
     def __repr__(self):
         return f'<LabTest {self.id} - {self.test_name} for Patient {self.patient_id}>'

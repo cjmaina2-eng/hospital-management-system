@@ -1,10 +1,11 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app import db
-from app.models import User, Role, Patient
+from app.models import User, Role, Patient, Appointment, Doctor
 from datetime import datetime
 from app.services.discharge_service import DischargeService
 from app.models import Service
+from app.security import can_view_clinical_details, can_view_patient_contact_details
 
 bp = Blueprint('patient', __name__, url_prefix='/patients')
 
@@ -16,11 +17,25 @@ def admin_or_receptionist_required():
 @login_required
 def index():
     # Allow admin, doctor, receptionist to view patient list
-    if not (current_user.has_role('admin') or current_user.has_role('doctor') or current_user.has_role('receptionist')):
+    if not (current_user.has_role('admin') or current_user.has_role('doctor') or current_user.has_role('nurse') or current_user.has_role('receptionist')):
         flash('You do not have permission to view patients.', 'danger')
         return redirect(url_for('dashboard.index'))
     
-    patients = Patient.query.all()
+    if current_user.has_role('doctor'):
+        doctor = Doctor.query.filter_by(user_id=current_user.id).first()
+        if not doctor:
+            flash('Doctor profile not found.', 'danger')
+            return redirect(url_for('dashboard.index'))
+        patient_ids = [
+            row[0] for row in db.session.query(Appointment.patient_id)
+            .filter_by(doctor_id=doctor.id)
+            .distinct()
+            .all()
+        ]
+        patients = Patient.query.filter(Patient.id.in_(patient_ids)).all() if patient_ids else []
+    else:
+        patients = Patient.query.all()
+
     return render_template('patient/index.html', patients=patients)
 
 @bp.route('/new', methods=['GET', 'POST'])
@@ -108,12 +123,16 @@ def new():
 @bp.route('/<int:id>')
 @login_required
 def view(id):
-    if not (current_user.has_role('admin') or current_user.has_role('doctor') or current_user.has_role('receptionist')):
+    if not (current_user.has_role('admin') or current_user.has_role('doctor') or current_user.has_role('nurse') or current_user.has_role('receptionist')):
         flash('Permission denied.', 'danger')
         return redirect(url_for('dashboard.index'))
     
     patient = Patient.query.get_or_404(id)
-    return render_template('patient/view.html', patient=patient)
+    is_patient_self = patient.user_id == current_user.id
+    is_clinical = can_view_clinical_details(current_user, patient.id)
+    is_operational = current_user.has_role('admin') or current_user.has_role('receptionist')
+    show_contact_details = can_view_patient_contact_details(current_user, patient.id)
+    return render_template('patient/view.html', patient=patient, is_patient_self=is_patient_self, is_clinical=is_clinical, is_operational=is_operational, show_contact_details=show_contact_details)
 
 @bp.route('/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -180,11 +199,14 @@ def delete(id):
 @bp.route('/<int:id>/discharge', methods=['GET', 'POST'])
 @login_required
 def discharge(id):
-    if not (current_user.has_role('receptionist') or current_user.has_role('admin')):
-        flash('Only reception staff can process discharge.', 'danger')
+    if not (current_user.has_role('doctor') or current_user.has_role('nurse')):
+        flash('Only doctors and nurses can process discharge.', 'danger')
         return redirect(url_for('patient.view', id=id))
 
     patient = Patient.query.get_or_404(id)
+    if not can_view_clinical_details(current_user, patient.id):
+        flash('Access denied. Discharge details are confidential clinical information.', 'danger')
+        return redirect(url_for('patient.view', id=id))
     if patient.status == 'Discharged':
         flash('Patient already discharged.', 'warning')
         return redirect(url_for('patient.view', id=id))
