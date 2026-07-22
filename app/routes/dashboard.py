@@ -17,7 +17,10 @@ def index():
     total_revenue = db.session.query(func.sum(Bill.paid_amount)).scalar() or 0.0
     unpaid_bills = Bill.query.filter_by(status='Unpaid').count()
 
-    recent_appointments = Appointment.query.order_by(Appointment.appointment_date.desc()).limit(5).all()
+    recent_appointments = Appointment.query.order_by(
+        Appointment.appointment_date_requested.desc(),
+        Appointment.appointment_date.desc()
+    ).limit(5).all()
 
     # Medical records – role-restricted
     if current_user.has_role('patient'):
@@ -40,7 +43,7 @@ def index():
             pending_appointments = Appointment.query.filter_by(
                 doctor_id=doctor.id,
                 status='Pending'
-            ).order_by(Appointment.appointment_date.asc()).all()
+            ).order_by(Appointment.appointment_date_requested.asc()).all()
             
             upcoming_appointments = Appointment.query.filter(
                 Appointment.doctor_id == doctor.id,

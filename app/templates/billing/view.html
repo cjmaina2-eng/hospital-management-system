@@ -26,7 +26,14 @@
                 {% endif %}
                 <p><strong>Notes:</strong> {{ bill.notes or '—' }}</p>
                 {% if bill.appointment %}
-                <p><strong>Appointment:</strong> {{ bill.appointment.appointment_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                <p>
+                    <strong>Appointment:</strong>
+                    {% if bill.appointment.appointment_date %}
+                    {{ bill.appointment.appointment_date.strftime('%Y-%m-%d %H:%M') }}
+                    {% else %}
+                    {{ bill.appointment.appointment_date_requested.strftime('%Y-%m-%d') }} - Time pending
+                    {% endif %}
+                </p>
                 {% endif %}
             </div>
             <div class="col-md-6">

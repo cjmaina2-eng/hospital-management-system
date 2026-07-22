@@ -61,7 +61,13 @@
                 <select class="form-select" id="appointment_id" name="appointment_id">
                     <option value="">None</option>
                     {% for appt in appointments %}
-                    <option value="{{ appt.id }}">{{ appt.appointment_date.strftime('%Y-%m-%d %H:%M') }}</option>
+                    <option value="{{ appt.id }}">
+                        {% if appt.appointment_date %}
+                        {{ appt.appointment_date.strftime('%Y-%m-%d %H:%M') }}
+                        {% else %}
+                        {{ appt.appointment_date_requested.strftime('%Y-%m-%d') }} - Time pending
+                        {% endif %}
+                    </option>
                     {% endfor %}
                 </select>
             </div>

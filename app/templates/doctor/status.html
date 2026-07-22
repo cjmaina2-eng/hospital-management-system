@@ -135,12 +135,12 @@
                                 <div class="text-muted small">{{ appt.patient.user.email }}</div>
                             </td>
                             <td>
-                                <span class="fw-semibold">{{ appt.appointment_date.strftime('%Y-%m-%d') }}</span>
-                                <div class="text-muted small">{{ appt.appointment_date.strftime('%H:%M') }}</div>
+                                <span class="fw-semibold">{{ appt.appointment_date_requested.strftime('%Y-%m-%d') }}</span>
+                                <div class="text-muted small">Time: Pending</div>
                             </td>
                             <td class="text-muted">{{ appt.reason }}</td>
                             <td class="text-end">
-                                <form action="{{ url_for('appointment.accept', id=appt.id) }}" method="POST" class="d-inline">
+                                <form action="{{ url_for('appointment.accept', id=appt.id) }}" method="GET" class="d-inline">
                                     <button type="submit" class="btn btn-sm btn-success">
                                         <i class="fas fa-check"></i> Accept
                                     </button>

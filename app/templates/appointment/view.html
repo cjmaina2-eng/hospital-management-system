@@ -40,14 +40,14 @@
     <form action="{{ url_for('appointment.reject', id=appointment.id) }}" method="POST" style="display:inline;">
         <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to reject this appointment?');">Reject</button>
     </form>
-    {% elif appointment.status == 'Accepted' and current_user.has_role('patient') %}
+    {% elif appointment.status == 'Accepted' and appointment.appointment_date and current_user.has_role('patient') %}
     <div class="alert alert-success">
         <i class="fas fa-check-circle"></i> Your appointment has been accepted! The doctor has scheduled it for <strong>{{ appointment.appointment_date.strftime('%B %d, %Y at %H:%M') }}</strong>.
     </div>
     <form action="{{ url_for('appointment.cancel', id=appointment.id) }}" method="POST" style="display:inline;">
         <button type="submit" class="btn btn-warning" onclick="return confirm('Are you sure you want to cancel this appointment?');">Cancel Appointment</button>
     </form>
-    {% elif appointment.status == 'Accepted' and (current_user.has_role('admin') or current_user.has_role('receptionist')) %}
+    {% elif appointment.status == 'Accepted' and appointment.appointment_date and (current_user.has_role('admin') or current_user.has_role('receptionist')) %}
     <div class="alert alert-success">
         <i class="fas fa-check-circle"></i> Appointment accepted and scheduled for <strong>{{ appointment.appointment_date.strftime('%B %d, %Y at %H:%M') }}</strong>.
     </div>

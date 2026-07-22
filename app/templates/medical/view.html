@@ -24,7 +24,14 @@
                 <p><strong>Follow-up Notes:</strong> {{ record.follow_up_notes or '—' }}</p>
                 <p><strong>Status:</strong> <span class="badge {% if record.status == 'Active' %}bg-warning{% else %}bg-secondary{% endif %}">{{ record.status }}</span></p>
                 {% if record.appointment %}
-                <p><strong>Associated Appointment:</strong> {{ record.appointment.appointment_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                <p>
+                    <strong>Associated Appointment:</strong>
+                    {% if record.appointment.appointment_date %}
+                    {{ record.appointment.appointment_date.strftime('%Y-%m-%d %H:%M') }}
+                    {% else %}
+                    {{ record.appointment.appointment_date_requested.strftime('%Y-%m-%d') }} - Time pending
+                    {% endif %}
+                </p>
                 {% endif %}
             </div>
         </div>

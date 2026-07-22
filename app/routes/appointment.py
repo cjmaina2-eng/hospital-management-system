@@ -24,6 +24,11 @@ def queue_appointment_email(appointment, decision):
     doctor_user = appointment.doctor.user
     status_text = decision.lower()
     appointment_url = url_for('appointment.view', id=appointment.id, _external=True)
+    if appointment.appointment_date:
+        appointment_when = appointment.appointment_date.strftime('%B %d, %Y at %H:%M')
+    else:
+        appointment_when = f"{appointment.appointment_date_requested.strftime('%B %d, %Y')} (time pending)"
+
     msg = Message(
         subject=f"Appointment {decision} - Kirwara Hospital",
         sender=current_app.config['MAIL_DEFAULT_SENDER'],
@@ -31,7 +36,7 @@ def queue_appointment_email(appointment, decision):
         html=f"""
         <p>Dear <strong>{patient_user.first_name}</strong>,</p>
         <p>Your appointment with <strong>Dr. {doctor_user.first_name} {doctor_user.last_name}</strong>
-        on <strong>{appointment.appointment_date.strftime('%B %d, %Y at %H:%M')}</strong>
+        on <strong>{appointment_when}</strong>
         has been <strong>{status_text}</strong>.</p>
         <p><strong>Reason:</strong> {appointment.reason}</p>
         <p><a href="{appointment_url}">View appointment details</a></p>
@@ -51,16 +56,25 @@ def index():
         if not patient:
             flash('You are not registered as a patient.', 'warning')
             return redirect(url_for('dashboard.index'))
-        appointments = Appointment.query.filter_by(patient_id=patient.id).order_by(Appointment.appointment_date.desc()).all()
+        appointments = Appointment.query.filter_by(patient_id=patient.id).order_by(
+            Appointment.appointment_date_requested.desc(),
+            Appointment.appointment_date.desc()
+        ).all()
     elif current_user.has_role('doctor'):
         doctor = Doctor.query.filter_by(user_id=current_user.id).first()
         if not doctor:
             flash('You are not registered as a doctor.', 'warning')
             return redirect(url_for('dashboard.index'))
-        appointments = Appointment.query.filter_by(doctor_id=doctor.id).order_by(Appointment.appointment_date.desc()).all()
+        appointments = Appointment.query.filter_by(doctor_id=doctor.id).order_by(
+            Appointment.appointment_date_requested.desc(),
+            Appointment.appointment_date.desc()
+        ).all()
     else:
         # Admin / Receptionist: see all
-        appointments = Appointment.query.order_by(Appointment.appointment_date.desc()).all()
+        appointments = Appointment.query.order_by(
+            Appointment.appointment_date_requested.desc(),
+            Appointment.appointment_date.desc()
+        ).all()
 
     return render_template('appointment/index.html', appointments=appointments)
 

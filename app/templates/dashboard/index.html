@@ -343,10 +343,13 @@
                             <strong>{{ appt.patient.user.first_name }} {{ appt.patient.user.last_name }}</strong><br>
                             <small class="text-muted">Patient ID: #{{ appt.patient.id }}</small>
                         </td>
-                        <td>{{ appt.appointment_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <span class="fw-semibold">{{ appt.appointment_date_requested.strftime('%Y-%m-%d') }}</span>
+                            <div class="text-muted small">Time: Pending</div>
+                        </td>
                         <td>{{ appt.reason }}</td>
                         <td class="text-end">
-                            <form action="{{ url_for('appointment.accept', id=appt.id) }}" method="POST" class="d-inline">
+                            <form action="{{ url_for('appointment.accept', id=appt.id) }}" method="GET" class="d-inline">
                                 <button type="submit" class="btn btn-sm btn-success">
                                     <i class="fas fa-check"></i> Accept
                                 </button>
@@ -398,7 +401,13 @@
                             </span>
                         </div>
                     </div>
-                    <span class="text-muted small">{{ appt.appointment_date.strftime('%Y-%m-%d %H:%M') }}</span>
+                    <span class="text-muted small">
+                        {% if appt.appointment_date %}
+                        {{ appt.appointment_date.strftime('%Y-%m-%d %H:%M') }}
+                        {% else %}
+                        {{ appt.appointment_date_requested.strftime('%Y-%m-%d') }} - Time pending
+                        {% endif %}
+                    </span>
                 </div>
                 {% else %}
                 <div class="empty-state">No recent appointments to display.</div>

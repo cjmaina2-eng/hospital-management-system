@@ -97,8 +97,18 @@
                     </td>
                     <td>Dr. {{ appt.doctor.user.first_name }} {{ appt.doctor.user.last_name }}</td>
                     <td>
+                        {% if appt.appointment_date %}
                         <span class="fw-semibold">{{ appt.appointment_date.strftime('%Y-%m-%d') }}</span>
                         <div class="text-muted small">{{ appt.appointment_date.strftime('%H:%M') }}</div>
+                        {% else %}
+                        {% if appt.appointment_date_requested %}
+                        <span class="fw-semibold">{{ appt.appointment_date_requested.strftime('%Y-%m-%d') }}</span>
+                        <div class="text-muted small">Time: Pending</div>
+                        {% else %}
+                        <span class="fw-semibold">Not scheduled</span>
+                        <div class="text-muted small">Time: Pending</div>
+                        {% endif %}
+                        {% endif %}
                     </td>
                     {% if not (current_user.has_role('admin') or current_user.has_role('receptionist')) %}
                     <td class="text-muted">{{ appt.reason }}</td>
@@ -120,7 +130,7 @@
                                 <i class="fas fa-eye"></i><span class="visually-hidden">View appointment</span>
                             </a>
                             {% if appt.status == 'Pending' and current_user.has_role('doctor') %}
-                            <form action="{{ url_for('appointment.accept', id=appt.id) }}" method="POST" style="display:inline;">
+                            <form action="{{ url_for('appointment.accept', id=appt.id) }}" method="GET" style="display:inline;">
                                 <button type="submit" class="btn btn-sm btn-outline-success">
                                     <i class="fas fa-check"></i><span class="visually-hidden">Accept appointment</span>
                                 </button>

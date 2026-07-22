@@ -41,7 +41,7 @@ def status():
     pending_appointments = (
         Appointment.query
         .filter_by(doctor_id=doctor.id, status='Pending')
-        .order_by(Appointment.appointment_date.asc())
+        .order_by(Appointment.appointment_date_requested.asc())
         .all()
     )
 
