@@ -9,3 +9,4 @@ python-dotenv==1.0.0
 pytest==7.4.2
 Flask-WTF==1.1.1
 Werkzeug>=2.2.0,<3.0.0
+requests==2.31.0

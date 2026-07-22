@@ -180,8 +180,8 @@ def delete(id):
 @bp.route('/<int:id>/discharge', methods=['GET', 'POST'])
 @login_required
 def discharge(id):
-    if not (current_user.has_role('doctor') or current_user.has_role('admin')):
-        flash('Only doctors and admins can discharge.', 'danger')
+    if not (current_user.has_role('receptionist') or current_user.has_role('admin')):
+        flash('Only reception staff can process discharge.', 'danger')
         return redirect(url_for('patient.view', id=id))
 
     patient = Patient.query.get_or_404(id)

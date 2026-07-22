@@ -12,10 +12,17 @@ class Bill(db.Model):
     total_amount = db.Column(db.Numeric(10, 2), default=0.00)
     paid_amount = db.Column(db.Numeric(10, 2), default=0.00)
     status = db.Column(db.String(20), default='Unpaid')  # Paid, Partial, Unpaid, Cancelled
-    payment_method = db.Column(db.String(50))  # Cash, Credit Card, Insurance, etc.
+    payment_method = db.Column(db.String(50))  # Cash, Credit Card, Insurance, M-Pesa, etc.
     source_type = db.Column(db.String(20), default='Manual')  # Manual, Discharge
     source_id = db.Column(db.Integer, nullable=True)  # For linking to discharge events
     notes = db.Column(db.Text)
+    
+    # M-Pesa fields
+    mpesa_checkout_request_id = db.Column(db.String(100), nullable=True, unique=True)
+    mpesa_receipt_number = db.Column(db.String(50), nullable=True)
+    mpesa_phone_number = db.Column(db.String(20), nullable=True)
+    mpesa_transaction_date = db.Column(db.DateTime, nullable=True)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

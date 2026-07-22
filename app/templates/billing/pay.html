@@ -26,7 +26,29 @@
                     </p>
                 </div>
 
-                <form method="POST" action="{{ url_for('billing.record_payment', bill_id=bill.id) }}">
+                <!-- Payment Method Selection -->
+                <div class="mb-4">
+                    <label for="payment_method" class="form-label fw-bold">Select Payment Method</label>
+                    <div class="btn-group w-100" role="group" aria-label="Payment Methods">
+                        <input type="radio" class="btn-check" name="payment_method" id="method_cash" value="cash" checked>
+                        <label class="btn btn-outline-primary" for="method_cash">
+                            <i class="fas fa-money-bill-wave"></i> Cash
+                        </label>
+
+                        <input type="radio" class="btn-check" name="payment_method" id="method_mpesa" value="mpesa">
+                        <label class="btn btn-outline-primary" for="method_mpesa">
+                            <i class="fas fa-mobile-alt"></i> M-Pesa
+                        </label>
+
+                        <input type="radio" class="btn-check" name="payment_method" id="method_card" value="card">
+                        <label class="btn btn-outline-primary" for="method_card">
+                            <i class="fas fa-credit-card"></i> Card
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Cash Payment Form -->
+                <form id="cash-form" method="POST" action="{{ url_for('billing.record_payment', bill_id=bill.id) }}" style="display: block;">
                     <div class="mb-3">
                         <label for="amount" class="form-label">Payment Amount (KES)</label>
                         <input type="number" class="form-control form-control-lg" id="amount" name="amount" 
@@ -38,6 +60,33 @@
                         <i class="fas fa-check-circle"></i> Confirm Payment
                     </button>
                 </form>
+
+                <!-- M-Pesa Payment Form -->
+                <form id="mpesa-form" method="POST" action="{{ url_for('billing.mpesa_initiate', bill_id=bill.id) }}" style="display: none;">
+                    <div class="mb-3">
+                        <label for="mpesa_phone" class="form-label">M-Pesa Phone Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text">+254</span>
+                            <input type="text" class="form-control form-control-lg" id="mpesa_phone" name="phone_number" 
+                                   placeholder="7XXXXXXXX" maxlength="9" pattern="[0-9]{9}" required>
+                        </div>
+                        <small class="text-muted">Enter 9 digits without leading 0 (e.g., 712345678)</small>
+                    </div>
+                    <button type="button" class="btn btn-info btn-lg w-100" id="mpesa-btn">
+                        <i class="fas fa-mobile-alt"></i> Send M-Pesa Prompt
+                    </button>
+                </form>
+
+                <!-- Card Payment Form -->
+                <form id="card-form" style="display: none;">
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle"></i> Card payment integration coming soon
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-lg w-100" disabled>
+                        Card Payment (Coming Soon)
+                    </button>
+                </form>
+
                 <div class="mt-3 text-center">
                     <a href="{{ url_for('billing.view', bill_id=bill.id) }}" class="btn btn-secondary">Cancel</a>
                 </div>
@@ -45,4 +94,107 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const methodRadios = document.querySelectorAll('input[name="payment_method"]');
+    const cashForm = document.getElementById('cash-form');
+    const mpesaForm = document.getElementById('mpesa-form');
+    const cardForm = document.getElementById('card-form');
+
+    methodRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            cashForm.style.display = 'none';
+            mpesaForm.style.display = 'none';
+            cardForm.style.display = 'none';
+
+            if (this.value === 'cash') {
+                cashForm.style.display = 'block';
+            } else if (this.value === 'mpesa') {
+                mpesaForm.style.display = 'block';
+            } else if (this.value === 'card') {
+                cardForm.style.display = 'block';
+            }
+        });
+    });
+
+    // M-Pesa payment handler
+    const mpesaBtn = document.getElementById('mpesa-btn');
+    if (mpesaBtn) {
+        mpesaBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const phoneNumber = document.getElementById('mpesa_phone').value;
+            
+            if (!phoneNumber || phoneNumber.length !== 9) {
+                alert('Please enter a valid 9-digit phone number');
+                return;
+            }
+
+            // Show loading state
+            mpesaBtn.disabled = true;
+            mpesaBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+            const formData = new FormData();
+            formData.append('phone_number', '254' + phoneNumber);
+
+            fetch('{{ url_for("billing.mpesa_initiate", bill_id=bill.id) }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                mpesaBtn.disabled = false;
+                mpesaBtn.innerHTML = '<i class="fas fa-mobile-alt"></i> Send M-Pesa Prompt';
+                
+                if (data.status === 'success') {
+                    alert('M-Pesa prompt sent successfully!\nPlease check your phone and enter your M-Pesa PIN.');
+                    // Check payment status periodically
+                    checkPaymentStatus({{ bill.id }});
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                mpesaBtn.disabled = false;
+                mpesaBtn.innerHTML = '<i class="fas fa-mobile-alt"></i> Send M-Pesa Prompt';
+                alert('Error: ' + error.message);
+            });
+        });
+    }
+
+    // Check M-Pesa payment status
+    function checkPaymentStatus(billId) {
+        const maxAttempts = 60; // Check for 5 minutes (60 * 5 seconds)
+        let attempts = 0;
+
+        const interval = setInterval(function() {
+            attempts++;
+            fetch('{{ url_for("billing.mpesa_check_status", bill_id=bill.id) }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.bill_status === 'Paid') {
+                        clearInterval(interval);
+                        alert('Payment successful! Your bill has been paid.');
+                        window.location.href = '{{ url_for("billing.view", bill_id=bill.id) }}';
+                    } else if (attempts >= maxAttempts) {
+                        clearInterval(interval);
+                        alert('Payment verification timed out. Your payment may still be processing.');
+                    }
+                })
+                .catch(error => {
+                    if (attempts >= maxAttempts) {
+                        clearInterval(interval);
+                    }
+                });
+        }, 5000); // Check every 5 seconds
+    }
+});
+</script>
+
+<style>
+.btn-group .btn-check:checked + label {
+    background-color: #0d6efd;
+    color: white;
+}
+</style>
 {% endblock %}

@@ -18,6 +18,12 @@
             <div class="col-md-6">
                 <p><strong>Due Date:</strong> {{ bill.due_date.strftime('%Y-%m-%d') if bill.due_date else 'N/A' }}</p>
                 <p><strong>Payment Method:</strong> {{ bill.payment_method or 'Not specified' }}</p>
+                {% if bill.payment_method == 'M-Pesa' and bill.mpesa_receipt_number %}
+                <div class="alert alert-success mt-2">
+                    <p class="mb-1"><strong>M-Pesa Receipt:</strong> {{ bill.mpesa_receipt_number }}</p>
+                    <p class="mb-0"><strong>Transaction Date:</strong> {{ bill.mpesa_transaction_date.strftime('%Y-%m-%d %H:%M') if bill.mpesa_transaction_date else 'Pending' }}</p>
+                </div>
+                {% endif %}
                 <p><strong>Notes:</strong> {{ bill.notes or '—' }}</p>
                 {% if bill.appointment %}
                 <p><strong>Appointment:</strong> {{ bill.appointment.appointment_date.strftime('%Y-%m-%d %H:%M') }}</p>

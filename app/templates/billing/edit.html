@@ -16,6 +16,7 @@
                 <select class="form-select" id="payment_method" name="payment_method">
                     <option value="Cash" {% if bill.payment_method == 'Cash' %}selected{% endif %}>Cash</option>
                     <option value="Credit Card" {% if bill.payment_method == 'Credit Card' %}selected{% endif %}>Credit Card</option>
+                    <option value="M-Pesa" {% if bill.payment_method == 'M-Pesa' %}selected{% endif %}>M-Pesa</option>
                     <option value="Insurance" {% if bill.payment_method == 'Insurance' %}selected{% endif %}>Insurance</option>
                     <option value="Mobile Money" {% if bill.payment_method == 'Mobile Money' %}selected{% endif %}>Mobile Money</option>
                     <option value="Other" {% if bill.payment_method == 'Other' %}selected{% endif %}>Other</option>

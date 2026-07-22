@@ -1,13 +1,18 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
 from app import db
 from app.models import Bill, BillItem, Patient, Appointment
+from app.services.mpesa_service import MpesaService
 from decimal import Decimal
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 bp = Blueprint('billing', __name__, url_prefix='/billing')
 
 def is_billing_staff():
+    """Only receptionist and admin can perform billing operations"""
     return current_user.has_role('admin') or current_user.has_role('receptionist')
 
 @bp.route('/')
@@ -256,3 +261,137 @@ def pending():
 
     bills = Bill.query.filter_by(status='Unpaid').order_by(Bill.bill_date.desc()).all()
     return render_template('billing/pending.html', bills=bills)
+
+
+@bp.route('/mpesa/initiate/<int:bill_id>', methods=['POST'])
+@login_required
+def mpesa_initiate(bill_id):
+    """Initiate M-Pesa STK push payment"""
+    bill = Bill.query.get_or_404(bill_id)
+    
+    # Permission: patient can pay own bills, reception/admin can process any
+    if current_user.has_role('patient'):
+        patient = Patient.query.filter_by(user_id=current_user.id).first()
+        if not patient or patient.id != bill.patient_id:
+            return jsonify({'status': 'error', 'message': 'Unauthorized'}), 403
+    elif not (current_user.has_role('admin') or current_user.has_role('receptionist')):
+        return jsonify({'status': 'error', 'message': 'Unauthorized'}), 403
+    
+    if bill.status == 'Paid':
+        return jsonify({'status': 'error', 'message': 'Bill already paid'}), 400
+    
+    try:
+        phone_number = request.form.get('phone_number', '')
+        if not phone_number:
+            return jsonify({'status': 'error', 'message': 'Phone number required'}), 400
+        
+        # Initialize M-Pesa service
+        mpesa_service = MpesaService()
+        
+        # Initiate STK push
+        response = mpesa_service.initiate_stk_push(
+            phone_number=phone_number,
+            amount=float(bill.total_amount),
+            bill_id=bill.id,
+            party_name=f"Hospital Bill #{bill.id}"
+        )
+        
+        # Check if request was successful
+        if response.get('ResponseCode') == '0':
+            # Store checkout request ID
+            bill.mpesa_checkout_request_id = response.get('CheckoutRequestID')
+            bill.mpesa_phone_number = phone_number
+            bill.payment_method = 'M-Pesa'
+            db.session.commit()
+            
+            return jsonify({
+                'status': 'success',
+                'message': 'STK push sent successfully',
+                'checkout_request_id': response.get('CheckoutRequestID')
+            })
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': response.get('ResponseDescription', 'STK push failed')
+            }), 400
+            
+    except Exception as e:
+        logger.error(f"M-Pesa initiation error: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@bp.route('/mpesa/callback', methods=['POST'])
+def mpesa_callback():
+    """Handle M-Pesa callback from Daraja"""
+    try:
+        callback_data = request.get_json()
+        
+        # Process callback
+        transaction_data = MpesaService.process_callback(callback_data)
+        
+        if transaction_data['status'] == 'success':
+            # Find bill by checkout request ID
+            checkout_id = transaction_data.get('checkout_request_id')
+            bill = Bill.query.filter_by(mpesa_checkout_request_id=checkout_id).first()
+            
+            if bill:
+                # Update bill with transaction details
+                bill.mpesa_receipt_number = transaction_data.get('mpesa_receipt_number')
+                bill.mpesa_transaction_date = datetime.utcnow()
+                
+                # Update payment status
+                amount_paid = transaction_data.get('transaction_amount', Decimal('0.00'))
+                bill.paid_amount = amount_paid
+                bill.payment_method = 'M-Pesa'
+                
+                if amount_paid >= bill.total_amount:
+                    bill.status = 'Paid'
+                else:
+                    bill.status = 'Partial'
+                
+                db.session.commit()
+                logger.info(f"Bill {bill.id} payment received via M-Pesa: {amount_paid}")
+        
+        # Always return 200 to acknowledge receipt
+        return jsonify({'ResultCode': '0', 'ResultDesc': 'Callback received'}), 200
+        
+    except Exception as e:
+        logger.error(f"M-Pesa callback error: {str(e)}")
+        return jsonify({'ResultCode': '1', 'ResultDesc': 'Error'}), 500
+
+
+@bp.route('/mpesa/check_status/<int:bill_id>', methods=['GET'])
+@login_required
+def mpesa_check_status(bill_id):
+    """Check status of M-Pesa payment"""
+    bill = Bill.query.get_or_404(bill_id)
+    
+    # Permission check
+    if current_user.has_role('patient'):
+        patient = Patient.query.filter_by(user_id=current_user.id).first()
+        if not patient or patient.id != bill.patient_id:
+            return jsonify({'status': 'error', 'message': 'Unauthorized'}), 403
+    elif not (current_user.has_role('admin') or current_user.has_role('receptionist')):
+        return jsonify({'status': 'error', 'message': 'Unauthorized'}), 403
+    
+    try:
+        if not bill.mpesa_checkout_request_id:
+            return jsonify({
+                'status': 'error',
+                'message': 'No M-Pesa transaction in progress'
+            }), 400
+        
+        mpesa_service = MpesaService()
+        status_response = mpesa_service.query_transaction_status(bill.mpesa_checkout_request_id)
+        
+        return jsonify({
+            'status': 'success',
+            'bill_status': bill.status,
+            'amount_paid': float(bill.paid_amount),
+            'total_amount': float(bill.total_amount),
+            'mpesa_status': status_response
+        })
+        
+    except Exception as e:
+        logger.error(f"Error checking M-Pesa status: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
