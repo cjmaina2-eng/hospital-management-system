@@ -7,7 +7,7 @@ Run this script to update the database schema:
 """
 
 from app import create_app, db
-from sqlalchemy import inspect, Column, Date, String
+from sqlalchemy import inspect, text
 
 def migrate_appointments():
     app = create_app()
@@ -23,29 +23,29 @@ def migrate_appointments():
             with db.engine.begin() as conn:
                 # Add new columns
                 if 'appointment_date_requested' not in columns:
-                    conn.execute('ALTER TABLE appointments ADD COLUMN appointment_date_requested DATE')
-                    print("  ✓ appointment_date_requested added")
+                    conn.execute(text('ALTER TABLE appointments ADD COLUMN appointment_date_requested DATE'))
+                    print("  appointment_date_requested added")
                 
                 if 'appointment_time' not in columns:
-                    conn.execute('ALTER TABLE appointments ADD COLUMN appointment_time VARCHAR(5)')
-                    print("  ✓ appointment_time added")
+                    conn.execute(text('ALTER TABLE appointments ADD COLUMN appointment_time VARCHAR(5)'))
+                    print("  appointment_time added")
                 
                 # Migrate existing data: set appointment_date_requested to date part of appointment_date
-                print("\n✓ Migrating existing appointment data...")
-                conn.execute('''
+                print("\nMigrating existing appointment data...")
+                conn.execute(text('''
                     UPDATE appointments 
                     SET appointment_date_requested = CAST(appointment_date AS DATE)
                     WHERE appointment_date_requested IS NULL
-                ''')
-                print("  ✓ appointment_date_requested populated from appointment_date")
+                '''))
+                print("  appointment_date_requested populated from appointment_date")
                 
                 # Extract time and store it
-                conn.execute('''
+                conn.execute(text('''
                     UPDATE appointments 
                     SET appointment_time = CAST(appointment_date AS TIME(0)) 
                     WHERE appointment_time IS NULL AND appointment_date IS NOT NULL
-                ''')
-                print("  ✓ appointment_time extracted from appointment_date")
+                '''))
+                print("  appointment_time extracted from appointment_date")
         
         print("\n✅ Migration complete!")
         print("Note: appointment_date will now be NULL for pending appointments")
